@@ -1,0 +1,8 @@
+# Vercel only needs the functions (api/, server/) and, later, the web app.
+worker/
+supabase/
+.github/
+*.yaml
+resume.md
+.env
+server/tests/

@@ -20,6 +20,17 @@ jobs:
       - run: ruff format --check .
       - run: pytest -q
 
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
   sql:
     runs-on: ubuntu-latest
     defaults:

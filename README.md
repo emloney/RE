@@ -4,9 +4,10 @@ A personal job-alert bot. It checks the career pages of companies **you** pick,
 several times a day, and (soon) pings you on Telegram the moment a new matching
 internship or fresher role appears, so you can apply on day 1.
 
-> **Status: work in progress.** Phase 1 (fetching jobs from career pages) is done.
-> Database, filtering, AI scoring, Telegram alerts, scheduling, the dashboard and the
-> cold-mail tracker are coming next. The full beginner guide will be here once those land.
+> **Status: work in progress.** Phases 1–2 are done: fetching jobs from career pages,
+> and detecting new jobs with state stored in Supabase. Filtering, AI scoring, Telegram
+> alerts, scheduling, the dashboard and the cold-mail tracker come next. The full
+> beginner guide will be here once those land.
 
 ## How it fetches jobs
 
@@ -39,6 +40,45 @@ python -m internradar fetch --show 2          # live: every company in companies
 python -m internradar fetch --company Intel --details --show 3
 python detect_ats.py https://jobs.lever.co/meesho
 ```
+
+## How "new" is decided
+
+- A job is **new** only if its id has never been seen before.
+- The **first time a company is checked**, all of its current jobs are saved silently
+  (a *baseline*), so you don't get hundreds of alerts for old jobs.
+  `--alert-on-baseline` turns this off, for testing only.
+- A **re-post** (new id, same company + title + location within 14 days) is saved
+  but never alerted.
+- If a fetch **fails** or suddenly returns **0 jobs**, nothing is marked missing.
+  A job is closed only after it's absent from **2 successful runs in a row**.
+- Running twice in a row never finds the same job twice.
+
+## Set up Supabase (free) for Phase 2
+
+1. Create a project at [supabase.com](https://supabase.com) (free plan). The Mumbai
+   region is closest if you're in India. Save the database password somewhere safe.
+2. Open **SQL Editor → New query**, paste all of
+   `supabase/migrations/20261027000001_core.sql`, and click **Run**. Then do the
+   same with `20261027000002_rls.sql`. Both should say "Success. No rows returned".
+3. Open **Project Settings → API Keys** (or **Data API**) and copy the **Project URL**
+   and a **secret** key (`sb_secret_...`). The legacy `service_role` key works too.
+   Put them in `.env`:
+   ```
+   SUPABASE_URL=https://xxxx.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
+   ```
+   This key can read and write everything, so keep it out of git and out of the web app.
+
+```bash
+python -m internradar run --company Groww     # first time: baseline, 0 new
+python -m internradar run --company Groww     # again: still 0 new (idempotent)
+python -m internradar run --dry-run           # read-only: shows what would be new
+python -m internradar run                     # every enabled company
+```
+
+To check the SQL without Supabase: `cd supabase/verify && npm install && npm test`
+runs the migrations in PGlite (Postgres in WebAssembly) and checks the functions
+and the Row-Level Security policies.
 
 ## Being a good citizen
 

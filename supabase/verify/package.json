@@ -1,0 +1,12 @@
+{
+  "name": "internradar-sql-verify",
+  "private": true,
+  "type": "module",
+  "description": "Runs the Supabase migrations in PGlite (Postgres in WebAssembly) and checks functions + RLS.",
+  "scripts": {
+    "test": "node verify.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.17"
+  }
+}

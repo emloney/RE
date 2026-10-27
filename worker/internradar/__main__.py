@@ -8,6 +8,9 @@ py -m internradar run                       # the real checker: detect new jobs,
 py -m internradar run --dry-run             # read the database but write nothing
 py -m internradar run --company Groww       # one company
 py -m internradar run --alert-on-baseline   # testing only: treat first-fetch jobs as new
+
+py -m internradar telegram chat-id          # check the bot token, find your chat id
+py -m internradar telegram test             # send yourself a sample alert
 """
 
 from __future__ import annotations
@@ -18,10 +21,12 @@ import logging
 import os
 import sys
 import time
+from datetime import UTC, datetime
 
 import yaml
 from pydantic import ValidationError
 
+from internradar.alerts import Alert, PrintSender, Sender, alert_buttons, format_alert
 from internradar.config import ConfigError, contact_email, load_companies, load_env, repo_root
 from internradar.evaluate import Evaluator, sort_matches
 from internradar.fetch import fetch_all, fill_details
@@ -32,6 +37,7 @@ from internradar.run import UnknownCompany, format_summary, run_once
 from internradar.scorer import load_resume
 from internradar.store import MemoryStore, ReadOnlyStore, Store
 from internradar.supabase_store import StoreError, SupabaseStore
+from internradar.telegram import TelegramClient, TelegramError
 
 
 def _fetch(args: argparse.Namespace) -> int:
@@ -115,9 +121,21 @@ def _make_evaluator(store: Store) -> Evaluator:
     return Evaluator(config, llm, resume, no_llm_reason=reason)
 
 
+def _make_sender(dry_run: bool) -> Sender | None:
+    if dry_run:
+        return PrintSender()
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    if not (token and chat_id):
+        print("Telegram alerts are off (set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID).\n")
+        return None
+    return TelegramClient(token, chat_id)
+
+
 def _run(args: argparse.Namespace) -> int:
     store = _make_store(args.dry_run)
     evaluator = _make_evaluator(store)
+    sender = _make_sender(args.dry_run)
     with PoliteClient(contact_email()) as http:
         result = run_once(
             store,
@@ -127,13 +145,22 @@ def _run(args: argparse.Namespace) -> int:
             alert_on_baseline=args.alert_on_baseline,
             trigger=args.trigger,
             evaluator=evaluator,
+            sender=sender,
         )
+    if isinstance(sender, TelegramClient):
+        sender.close()
+    if result.alerts and result.alerts.paused:
+        print("Alerts are paused, so nothing was sent.")
+    if result.alerts and result.alerts.held_by_min_score:
+        print(f"{result.alerts.held_by_min_score} matches were below your /minscore.")
+    for problem in result.alerts.errors if result.alerts else []:
+        print(f"⚠ alert not sent: {problem}")
 
-    verb = "Would alert" if args.dry_run else "Match"
-    for ev in sort_matches(result.evaluated):
+    # With Telegram off, list the matches here (a dry run already printed the messages).
+    for ev in sort_matches(result.evaluated) if sender is None else []:
         job = ev.job
         score = f"{ev.score.score}/10 — {ev.score.why}" if ev.score else "not scored"
-        print(f"🆕 {verb}: {job.company} — {job.title} | {job.location or '-'}")
+        print(f"🆕 Match: {job.company} — {job.title} | {job.location or '-'}")
         print(f"   ⭐ {score}")
         if ev.score and ev.score.missing_skills:
             print(f"   missing: {', '.join(ev.score.missing_skills)}")
@@ -148,8 +175,57 @@ def _run(args: argparse.Namespace) -> int:
     return 1 if result.summary.status == "failed" else 0
 
 
+def _telegram(args: argparse.Namespace) -> int:
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token:
+        raise ConfigError("Set TELEGRAM_BOT_TOKEN in .env first (from @BotFather)")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+    bot = TelegramClient(token, chat_id)
+    try:
+        me = bot.call("getMe", {})
+        print(f"Token works: this is @{me.get('username')} ({me.get('first_name')}).")
+        if args.action == "chat-id":
+            updates = bot.call("getUpdates", {"limit": 100})
+            chats = {
+                u["message"]["chat"]["id"]: u["message"]["chat"]
+                for u in updates
+                if "message" in u and "chat" in u["message"]
+            }
+            if not chats:
+                print(
+                    f"No messages yet. Open Telegram, find @{me.get('username')}, send it "
+                    "/start, then run this again. (This only works before the webhook "
+                    "is set up.)"
+                )
+                return 1
+            for cid, chat in chats.items():
+                who = chat.get("username") or chat.get("first_name") or chat.get("title")
+                print(f"  chat id {cid}  ←  {who}")
+            print("\nPut YOUR chat id in .env as TELEGRAM_CHAT_ID.")
+            return 0
+        if not chat_id:
+            raise ConfigError("Set TELEGRAM_CHAT_ID in .env (run: telegram chat-id)")
+        sample = Alert(
+            job_id="0" * 32,
+            company="InternRadar <test> & co",
+            title="Data Analyst Intern",
+            location="Bengaluru, India",
+            url="https://example.com/jobs/1?ref=internradar&src=test",
+            first_seen_at=datetime.now(UTC),
+            score=8,
+            why="Sample alert: if this looks right, alerts are working",
+            missing_skills=["Tableau", "dbt"],
+        )
+        bot.send(format_alert(sample), alert_buttons(sample.job_id))
+        print("Sent a sample alert. The buttons start working in the next phase.")
+        return 0
+    finally:
+        bot.close()
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    # httpx logs every request URL at INFO, and Telegram URLs contain the bot token.
     logging.getLogger("httpx").setLevel(logging.WARNING)
     load_env()
 
@@ -170,11 +246,15 @@ def main(argv: list[str] | None = None) -> int:
         help="TESTING ONLY: treat a company's first-fetch jobs as new",
     )
     r.add_argument("--trigger", default="manual", help="recorded in the runs table")
+
+    t = sub.add_parser("telegram", help="set up and test the Telegram bot")
+    t.add_argument("action", choices=["chat-id", "test"])
     args = parser.parse_args(argv)
 
+    commands = {"fetch": _fetch, "run": _run, "telegram": _telegram}
     try:
-        return _fetch(args) if args.command == "fetch" else _run(args)
-    except (ConfigError, UnknownCompany, StoreError) as exc:
+        return commands[args.command](args)
+    except (ConfigError, UnknownCompany, StoreError, TelegramError) as exc:
         print(exc, file=sys.stderr)
         return 2
 

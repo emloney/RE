@@ -12,11 +12,13 @@ from typing import Any
 
 import httpx
 
+from internradar.alerts import Alert
 from internradar.detect import KnownJob, SyncPlan, TrackedCompany
 from internradar.models import Company
 from internradar.store import (
     PendingJob,
     RunSummary,
+    alert_from_row,
     company_from_row,
     company_row,
     job_from_row,
@@ -234,6 +236,38 @@ class SupabaseStore:
             json={"filters": filters, "updated_at": datetime.now(UTC).isoformat()},
             headers={"Prefer": "return=minimal"},
         )
+
+    def alert_candidates(self, since: datetime) -> list[Alert]:
+        rows = self._select_all(
+            "jobs",
+            {
+                "select": "id,title,location,url,first_seen_at,score,score_why,missing_skills,"
+                "companies(name)",
+                "filter_passed": "is.true",
+                "is_baseline": "is.false",
+                "duplicate_of": "is.null",
+                "alerted_at": "is.null",
+                "scored_at": "not.is.null",
+                "first_seen_at": f"gte.{since.isoformat()}",
+                "order": "first_seen_at",
+            },
+        )
+        return [alert_from_row(row, row["companies"]["name"]) for row in rows]
+
+    def mark_alerted(self, job_ids: list[str], now: datetime) -> None:
+        for i in range(0, len(job_ids), 50):
+            ids = ",".join(job_ids[i : i + 50])  # our ids are hex, so no quoting needed
+            self._call(
+                "PATCH",
+                "/jobs",
+                params={"id": f"in.({ids})", "alerted_at": "is.null"},
+                json={"alerted_at": now.isoformat()},
+                headers={"Prefer": "return=minimal"},
+            )
+
+    def alert_settings(self) -> dict[str, Any]:
+        rows = self._call("GET", "/settings", params={"select": "paused,min_score", "id": "eq.1"})
+        return rows[0] if rows else {"paused": False, "min_score": None}
 
     def finish_run(self, run_id: str, summary: RunSummary, now: datetime) -> None:
         self._call(

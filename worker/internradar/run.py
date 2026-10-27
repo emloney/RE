@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
+from internradar.alerts import Alert, AlertReport, Sender, send_alerts
 from internradar.detect import NewJob, SuspiciousEmpty, TrackedCompany, plan_sync
 from internradar.evaluate import Evaluated, Evaluator, evaluate_and_save
 from internradar.fetch import fetch_company
@@ -38,6 +39,7 @@ class RunResult:
     new_jobs: list[FoundJob] = field(default_factory=list)
     # Filter + score outcome for this run's new jobs (and any left unscored earlier).
     evaluated: list[Evaluated] = field(default_factory=list)
+    alerts: AlertReport | None = None
     added_companies: list[str] = field(default_factory=list)
     # Companies whose failure streak just reached a warning threshold (Phase 5 alerts on this).
     failure_streaks: dict[str, int] = field(default_factory=dict)
@@ -56,6 +58,7 @@ def run_once(
     alert_on_baseline: bool = False,
     trigger: str = "manual",
     evaluator: Evaluator | None = None,
+    sender: Sender | None = None,
     now: Callable[[], datetime] = utcnow,
 ) -> RunResult:
     start = time.monotonic()
@@ -82,6 +85,11 @@ def run_once(
             candidates = _candidates(store, result, now() - PENDING_WINDOW)
             result.evaluated = evaluate_and_save(evaluator, store, candidates, http, now())
             summary.llm_calls = sum(e.llm_calls for e in result.evaluated)
+        if sender is not None:
+            t = now()
+            extra = [_as_alert(e, t) for e in result.evaluated if e.matched]
+            result.alerts = send_alerts(store, sender, t - PENDING_WINDOW, t, extra)
+            summary.alerts_sent = result.alerts.sent
     except Exception as exc:
         summary.status = "failed"
         summary.error = f"{type(exc).__name__}: {exc}"
@@ -99,6 +107,20 @@ def run_once(
     summary.duration_s = time.monotonic() - start
     store.finish_run(run_id, summary, now())
     return result
+
+
+def _as_alert(ev: Evaluated, now: datetime) -> Alert:
+    return Alert(
+        job_id=ev.job.id,
+        company=ev.company.name,
+        title=ev.job.title,
+        location=ev.job.location,
+        url=ev.job.url,
+        first_seen_at=ev.job.first_seen_at or now,
+        score=ev.score.score if ev.score else None,
+        why=ev.score.why if ev.score else None,
+        missing_skills=ev.score.missing_skills if ev.score else [],
+    )
 
 
 def _candidates(store: Store, result: RunResult, since: datetime) -> list[tuple[Company, Job]]:

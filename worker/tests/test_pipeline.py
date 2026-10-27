@@ -123,6 +123,53 @@ def test_dry_run_scores_but_saves_nothing(client_for):
     assert env.store.jobs == {}
 
 
+def test_matches_are_alerted_once_and_baseline_never(client_for):
+    from .test_telegram import FakeSender
+
+    env = Env(client_for, FakeLLM(GOOD))
+    sender = FakeSender()
+    env.board = [posting("1", "Data Analyst Intern")]
+    first = run_once(
+        env.store, [ACME], env.http, evaluator=env.evaluator, sender=sender, now=lambda: env.t
+    )
+    assert first.summary.alerts_sent == 0 and sender.sent == []  # baseline
+
+    env.board.append(posting("2", "ML Intern"))
+    env.t += timedelta(hours=4)
+    second = run_once(
+        env.store, [ACME], env.http, evaluator=env.evaluator, sender=sender, now=lambda: env.t
+    )
+    assert second.summary.alerts_sent == 1
+    ((text, buttons),) = sender.sent
+    assert "ML Intern" in text and "8/10" in text and buttons
+    assert env.job("ML Intern")["alerted_at"] == env.t
+
+    env.t += timedelta(hours=4)
+    third = run_once(
+        env.store, [ACME], env.http, evaluator=env.evaluator, sender=sender, now=lambda: env.t
+    )
+    assert third.summary.alerts_sent == 0 and len(sender.sent) == 1
+
+
+def test_dry_run_shows_alerts_without_marking_them(client_for):
+    from .test_telegram import FakeSender
+
+    env = Env(client_for, FakeLLM(GOOD, GOOD))
+    env.run()
+    env.board = [posting("1", "ML Intern")]
+    sender = FakeSender()
+    result = run_once(
+        ReadOnlyStore(env.store),
+        [ACME],
+        env.http,
+        evaluator=env.evaluator,
+        sender=sender,
+        now=lambda: env.t,
+    )
+    assert result.summary.alerts_sent == 1 and len(sender.sent) == 1
+    assert env.store.jobs == {}
+
+
 def test_details_fetched_only_for_jobs_that_pass_the_title_check(load_fixture, client_for):
     company = Company(name="Freshworks", ats=ATS.smartrecruiters, id="Freshworks")
     listing = load_fixture("smartrecruiters_freshworks_list.json")

@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
 
+from internradar.alerts import Alert
 from internradar.detect import KnownJob, NewJob, SyncPlan, TrackedCompany
 from internradar.models import ATS, Company, Job
 from internradar.text import normalise_title, parse_dt
@@ -80,6 +81,44 @@ class Store(Protocol):
     def load_filters(self) -> dict[str, Any] | None: ...
 
     def save_filters(self, filters: dict[str, Any]) -> None: ...
+
+    def alert_candidates(self, since: datetime) -> list[Alert]:
+        """Matched, fully evaluated jobs since `since` that were never alerted."""
+
+    def mark_alerted(self, job_ids: list[str], now: datetime) -> None: ...
+
+    def alert_settings(self) -> dict[str, Any]:
+        """{"paused": bool, "min_score": int | None}"""
+
+
+def alert_from_row(row: dict[str, Any], company_name: str) -> Alert:
+    first_seen = row["first_seen_at"]
+    return Alert(
+        job_id=row["id"],
+        company=company_name,
+        title=row["title"],
+        location=row.get("location") or "",
+        url=row["url"],
+        first_seen_at=first_seen if isinstance(first_seen, datetime) else parse_dt(first_seen),
+        score=row.get("score"),
+        why=row.get("score_why"),
+        missing_skills=list(row.get("missing_skills") or []),
+    )
+
+
+def is_alert_candidate(row: dict[str, Any], since: datetime) -> bool:
+    first_seen = row["first_seen_at"]
+    if not isinstance(first_seen, datetime):
+        first_seen = parse_dt(first_seen)
+    return (
+        row.get("filter_passed") is True
+        and not row["is_baseline"]
+        and row["duplicate_of"] is None
+        and row.get("alerted_at") is None
+        and row.get("scored_at") is not None
+        and first_seen is not None
+        and first_seen >= since
+    )
 
 
 def job_row(
@@ -191,6 +230,7 @@ class MemoryStore:
         self.runs: dict[str, dict[str, Any]] = {}
         self.fetches: list[dict[str, Any]] = []
         self.filters: dict[str, Any] | None = None
+        self.settings: dict[str, Any] = {"paused": False, "min_score": None}
 
     def sync_companies(self, companies: list[Company]) -> list[str]:
         added = []
@@ -318,6 +358,20 @@ class MemoryStore:
     def save_filters(self, filters: dict[str, Any]) -> None:
         self.filters = filters
 
+    def alert_candidates(self, since: datetime) -> list[Alert]:
+        return [
+            alert_from_row(row, self.companies[row["company_id"]]["name"])
+            for row in sorted(self.jobs.values(), key=lambda r: r["first_seen_at"])
+            if is_alert_candidate(row, since)
+        ]
+
+    def mark_alerted(self, job_ids: list[str], now: datetime) -> None:
+        for jid in job_ids:
+            self.jobs[jid]["alerted_at"] = now
+
+    def alert_settings(self) -> dict[str, Any]:
+        return dict(self.settings)
+
 
 class ReadOnlyStore:
     """Reads go to the real store; writes are skipped. Used for --dry-run."""
@@ -357,3 +411,12 @@ class ReadOnlyStore:
 
     def save_filters(self, *args: Any, **kwargs: Any) -> None:
         return None
+
+    def alert_candidates(self, since: datetime) -> list[Alert]:
+        return self.inner.alert_candidates(since)
+
+    def mark_alerted(self, *args: Any, **kwargs: Any) -> None:
+        return None
+
+    def alert_settings(self) -> dict[str, Any]:
+        return self.inner.alert_settings()

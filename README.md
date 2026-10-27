@@ -4,10 +4,11 @@ A personal job-alert bot. It checks the career pages of companies **you** pick,
 several times a day, and (soon) pings you on Telegram the moment a new matching
 internship or fresher role appears, so you can apply on day 1.
 
-> **Status: work in progress.** Phases 1–3 are done: fetching jobs from career pages,
-> detecting new jobs with state stored in Supabase, and filtering + AI scoring against
-> your resume. Telegram alerts, scheduling, the dashboard and the cold-mail tracker
-> come next. The full beginner guide will be here once those land.
+> **Status: work in progress.** Phases 1–4 (alerts) are done: fetching jobs from career
+> pages, detecting new jobs with state stored in Supabase, filtering + AI scoring against
+> your resume, and Telegram alerts. Scheduling, Telegram commands and buttons, the
+> dashboard and the cold-mail tracker come next. The full beginner guide will be here
+> once those land.
 
 ## How it fetches jobs
 
@@ -106,6 +107,40 @@ Setup:
 ```bash
 python -m internradar run --dry-run --alert-on-baseline --company "Sarvam AI"
 ```
+
+## Telegram alerts (Phase 4)
+
+Each new matching job arrives as one message, best score first:
+
+```
+🆕 Acme — Data Analyst Intern
+📍 Bengaluru   🕒 seen 27 Oct, 08:00 AM IST
+⭐ Match: 8/10 — Strong SQL and Python projects
+🧩 Missing: Tableau, dbt
+🔗 Apply: https://...
+[✅ Applied] [⭐ Interested] [❌ Skip]
+```
+
+If more than 10 match in one run, you get the top 10 individually and one summary
+of the rest. A job is marked alerted the moment its message is sent, so re-runs never
+repeat it. (The buttons start working once the webhook is added in a later phase.)
+
+**Create your bot (2 minutes):**
+
+1. In Telegram, open **@BotFather** (the one with the blue tick), send `/newbot`,
+   pick a display name and a username ending in `bot`, for example `myinternradar_bot`.
+2. BotFather replies with a token like `123456789:AA...`. Put it in `.env` as
+   `TELEGRAM_BOT_TOKEN=...`. Treat it like a password: anyone with it controls your bot.
+3. Open your new bot in Telegram and send it `/start`. This lets the bot message you.
+4. Find your chat id:
+   ```bash
+   python -m internradar telegram chat-id
+   ```
+   Put the number it prints in `.env` as `TELEGRAM_CHAT_ID=...`.
+5. Send yourself a sample alert:
+   ```bash
+   python -m internradar telegram test
+   ```
 
 ## Being a good citizen
 

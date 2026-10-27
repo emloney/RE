@@ -1,0 +1,127 @@
+# Companies InternRadar watches.
+#
+# This file only SEEDS the database: from Phase 2 on, new entries here are added
+# to the companies table, but existing rows are never overwritten (so toggles you
+# flip in the dashboard stick). To add a company, run:
+#   cd worker && py detect_ats.py <careers_url>
+# and paste the snippet it prints.
+#
+# Fields:
+#   ats:            greenhouse | lever | ashby | smartrecruiters | workday | html
+#   id:             board token / slug / company id / Workday tenant
+#   workday_dc:     the N in {tenant}.wd{N}.myworkdayjobs.com   (workday only)
+#   workday_site:   the path after the domain, e.g. "External"  (workday only)
+#   workday_search: optional search text so we don't page through thousands of global jobs
+#   html_selectors: CSS selectors for custom pages (html only, see CONTRIBUTING.md)
+#
+# All entries below were checked against the live API on 2026-10-27.
+
+# --- Greenhouse ---------------------------------------------------------------
+- name: Databricks
+  ats: greenhouse
+  id: databricks
+  careers_url: https://job-boards.greenhouse.io/databricks
+
+- name: Okta
+  ats: greenhouse
+  id: okta
+  careers_url: https://www.okta.com/company/careers/
+
+- name: Stripe
+  ats: greenhouse
+  id: stripe
+  careers_url: https://job-boards.greenhouse.io/stripe
+
+- name: Rubrik
+  ats: greenhouse
+  id: rubrik
+  careers_url: https://www.rubrik.com/company/careers
+
+- name: MongoDB
+  ats: greenhouse
+  id: mongodb
+  careers_url: https://www.mongodb.com/careers
+
+- name: Razorpay
+  ats: greenhouse
+  id: razorpaysoftwareprivatelimited
+  careers_url: https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited
+
+- name: Groww
+  ats: greenhouse
+  id: groww
+  careers_url: https://job-boards.eu.greenhouse.io/groww
+
+# --- Lever --------------------------------------------------------------------
+- name: Meesho
+  ats: lever
+  id: meesho
+  careers_url: https://jobs.lever.co/meesho
+
+- name: Paytm
+  ats: lever
+  id: paytm
+  careers_url: https://jobs.lever.co/paytm
+
+- name: Zeta
+  ats: lever
+  id: zeta
+  careers_url: https://jobs.lever.co/zeta
+
+- name: CRED
+  ats: lever
+  id: cred
+  careers_url: https://jobs.lever.co/cred
+
+# --- Ashby --------------------------------------------------------------------
+- name: Sarvam AI
+  ats: ashby
+  id: sarvam
+  careers_url: https://jobs.ashbyhq.com/sarvam
+
+# --- SmartRecruiters ----------------------------------------------------------
+- name: Swiggy
+  ats: smartrecruiters
+  id: Swiggy
+  careers_url: https://jobs.smartrecruiters.com/Swiggy
+
+- name: Freshworks
+  ats: smartrecruiters
+  id: Freshworks
+  careers_url: https://jobs.smartrecruiters.com/Freshworks
+
+# --- Workday ------------------------------------------------------------------
+- name: Intel
+  ats: workday
+  id: intel
+  workday_dc: 1
+  workday_site: External
+  workday_search: Bangalore
+  careers_url: https://intel.wd1.myworkdayjobs.com/External
+
+- name: Adobe
+  ats: workday
+  id: adobe
+  workday_dc: 5
+  workday_site: external_experienced
+  workday_search: Bangalore
+  careers_url: https://adobe.wd5.myworkdayjobs.com/external_experienced
+
+# --- Verified too, disabled by default (enable if you want them) --------------
+- name: Cisco
+  ats: workday
+  id: cisco
+  workday_dc: 5
+  workday_site: Cisco_Careers
+  workday_search: Bangalore
+  careers_url: https://cisco.wd5.myworkdayjobs.com/Cisco_Careers
+  enabled: false
+
+- name: NVIDIA
+  ats: workday
+  id: nvidia
+  workday_dc: 5
+  workday_site: NVIDIAExternalCareerSite
+  workday_search: Bangalore
+  careers_url: https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
+  enabled: false

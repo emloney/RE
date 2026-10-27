@@ -1,0 +1,33 @@
+{
+  "total": 3,
+  "jobPostings": [
+    {
+      "title": "Accountant",
+      "externalPath": "/job/India-Bangalore/Accountant_JR0283198",
+      "locationsText": "India, Bangalore",
+      "postedOn": "Posted 30+ Days Ago",
+      "bulletFields": [
+        "JR0283198"
+      ]
+    },
+    {
+      "title": "CPU DFT Manager",
+      "externalPath": "/job/India-Bangalore/CPU-DFT-Manager_JR0285257",
+      "locationsText": "India, Bangalore",
+      "postedOn": "Posted 30+ Days Ago",
+      "bulletFields": [
+        "JR0285257"
+      ]
+    },
+    {
+      "title": "CPU Circuit Design Lead",
+      "externalPath": "/job/India-Bangalore/CPU-Circuit-Design-Lead_JR0285850-1",
+      "locationsText": "India, Bangalore",
+      "postedOn": "Posted 30+ Days Ago",
+      "bulletFields": [
+        "JR0285850"
+      ]
+    }
+  ],
+  "userAuthenticated": false
+}

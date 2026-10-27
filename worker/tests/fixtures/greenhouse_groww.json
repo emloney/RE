@@ -1,0 +1,187 @@
+{
+  "jobs": [
+    {
+      "absolute_url": "https://job-boards.eu.greenhouse.io/groww/jobs/4970739101",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 4520058101,
+      "location": {
+        "name": "Bengaluru-VTP, India"
+      },
+      "metadata": [
+        {
+          "id": 9193480101,
+          "name": "Designation",
+          "value": "Assistant Manager",
+          "value_type": "short_text"
+        }
+      ],
+      "id": 4970739101,
+      "updated_at": "2026-09-14T03:52:53-04:00",
+      "requisition_id": "GRID-17832",
+      "title": "Assistant Manager - Internal Audit",
+      "company_name": "Groww",
+      "first_published": "2026-09-14T03:49:28-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div&gt;&lt;strong&gt;About Groww:&lt;/strong&gt;&lt;/div&gt;\n&lt;div&gt;We are a passionate group of people focused on making financial services accessible to every Indian through a multi-product platform. Each day, we help millions of customers take charge of their financial journey. Customer o",
+      "departments": [
+        {
+          "id": 4043270101,
+          "name": "Internal Controls",
+          "child_ids": [],
+          "parent_id": null
+        }
+      ],
+      "offices": [
+        {
+          "id": 4018978101,
+          "name": "Bengaluru-VTP",
+          "location": "Bengaluru-VTP, India",
+          "child_ids": [],
+          "parent_id": 4018977101
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4970739101/ai_opt_out"
+    },
+    {
+      "absolute_url": "https://job-boards.eu.greenhouse.io/groww/jobs/4880153101",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 4477650101,
+      "location": {
+        "name": "Bengaluru-VTP, India"
+      },
+      "metadata": [
+        {
+          "id": 9193480101,
+          "name": "Designation",
+          "value": "Associate",
+          "value_type": "short_text"
+        }
+      ],
+      "id": 4880153101,
+      "updated_at": "2026-08-27T07:35:34-04:00",
+      "requisition_id": "GRID-17155",
+      "title": "Associate - Content (Digest)",
+      "company_name": "Groww",
+      "first_published": "2026-06-03T02:46:08-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div&gt;&lt;strong&gt;About Groww:&lt;/strong&gt;&lt;/div&gt;\n&lt;div&gt;We are a passionate group of people focused on making financial services accessible to every Indian through a multi-product platform. Each day, we help millions of customers take charge of their financial journey. Customer o",
+      "departments": [
+        {
+          "id": 4033749101,
+          "name": "Growth",
+          "child_ids": [
+            4037712101,
+            4037713101,
+            4033753101,
+            4033750101,
+            4033755101,
+            4033754101,
+            4033752101,
+            4033751101
+          ],
+          "parent_id": null
+        }
+      ],
+      "offices": [
+        {
+          "id": 4018978101,
+          "name": "Bengaluru-VTP",
+          "location": "Bengaluru-VTP, India",
+          "child_ids": [],
+          "parent_id": 4018977101
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4880153101/ai_opt_out"
+    },
+    {
+      "absolute_url": "https://job-boards.eu.greenhouse.io/groww/jobs/4979964101",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 4523869101,
+      "location": {
+        "name": "Bengaluru-VTP, India"
+      },
+      "metadata": [
+        {
+          "id": 9193480101,
+          "name": "Designation",
+          "value": "Senior Associate",
+          "value_type": "short_text"
+        }
+      ],
+      "id": 4979964101,
+      "updated_at": "2026-10-08T02:42:18-04:00",
+      "requisition_id": "GRID-17853",
+      "title": "Creative Illustrator ",
+      "company_name": "Groww",
+      "first_published": "2026-10-08T02:22:36-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div&gt;&lt;strong&gt;About Groww:&lt;/strong&gt;&lt;/div&gt;\n&lt;div&gt;We are a passionate group of people focused on making financial services accessible to every Indian through a multi-product platform. Each day, we help millions of customers take charge of their financial journey. Customer o",
+      "departments": [
+        {
+          "id": 4033749101,
+          "name": "Growth",
+          "child_ids": [
+            4037712101,
+            4037713101,
+            4033753101,
+            4033750101,
+            4033755101,
+            4033754101,
+            4033752101,
+            4033751101
+          ],
+          "parent_id": null
+        }
+      ],
+      "offices": [
+        {
+          "id": 4018978101,
+          "name": "Bengaluru-VTP",
+          "location": "Bengaluru-VTP, India",
+          "child_ids": [],
+          "parent_id": 4018977101
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": "http://s101.recruiting.eu.greenhouse.io/ai_opt_out_request/job_post/4979964101/ai_opt_out"
+    }
+  ],
+  "meta": {
+    "total": 3
+  }
+}

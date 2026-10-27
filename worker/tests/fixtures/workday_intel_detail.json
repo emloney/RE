@@ -1,0 +1,31 @@
+{
+  "jobPostingInfo": {
+    "id": "38f4b14c37cd1000b267c41ac43e0000",
+    "title": "Accountant",
+    "jobDescription": "<h1><b>Job Details:</b></h1><p style=\"text-align:inherit\"></p><p style=\"text-align:inherit\"></p><h2>Job Description:&nbsp;</h2>Prepares and maintains Intel's financial records, negotiates and manages audits with audit seniors, manages interactions with external auditors and government authorities, a",
+    "location": "India, Bangalore",
+    "postedOn": "Posted 30+ Days Ago",
+    "startDate": "2026-09-18",
+    "timeType": "Full time",
+    "jobReqId": "JR0283198",
+    "jobPostingId": "Accountant_JR0283198",
+    "jobPostingSiteId": "External",
+    "country": {
+      "descriptor": "India",
+      "id": "c4f78be1a8f14da0ab49ce1162348a5e"
+    },
+    "canApply": true,
+    "posted": true,
+    "includeResumeParsing": true,
+    "jobRequisitionLocation": {
+      "descriptor": "SRR4 - SRR4 - Sarjapur 4",
+      "country": {
+        "descriptor": "India",
+        "id": "c4f78be1a8f14da0ab49ce1162348a5e",
+        "alpha2Code": "IN"
+      }
+    },
+    "externalUrl": "https://intel.wd1.myworkdayjobs.com/External/job/India-Bangalore/Accountant_JR0283198",
+    "questionnaireId": "cb03c801e1d11001aa11d20dbbd10000"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "jobs": [
+    {
+      "id": "c0406fe0-c8c0-44aa-aa3e-b879f2bf1049",
+      "title": "Engagement Manager, Chanakya",
+      "department": "Business Development",
+      "team": "Business Development",
+      "employmentType": "FullTime",
+      "location": "Delhi",
+      "secondaryLocations": [],
+      "publishedAt": "2026-04-17T11:46:39.214+00:00",
+      "isListed": true,
+      "isRemote": false,
+      "workplaceType": "OnSite",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "Delhi",
+          "addressCountry": "India",
+          "addressLocality": "Delhi"
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/sarvam/c0406fe0-c8c0-44aa-aa3e-b879f2bf1049",
+      "applyUrl": "https://jobs.ashbyhq.com/sarvam/c0406fe0-c8c0-44aa-aa3e-b879f2bf1049/application",
+      "descriptionHtml": "<p style=\"min-height:1.5em\"><strong>About Sarvam</strong></p><p style=\"min-height:1.5em\">Sarvam is building the bedrock of Sovereign AI for India. The company is developing India's full-stack sovereign AI platform, building across research, models, infrastructure and applications with a singular foc",
+      "descriptionPlain": "About Sarvam\n\nSarvam is building the bedrock of Sovereign AI for India. The company is developing India's full-stack sovereign AI platform, building across research, models, infrastructure and applications with a singular focus on making AI genuinely work for India. Sarvam works with leading enterpr"
+    },
+    {
+      "id": "7c42207a-bb56-413c-839f-9ad692df840e",
+      "title": "Data Scientist - Evaluations, Chanakya",
+      "department": "Engineering",
+      "team": "Engineering",
+      "employmentType": "FullTime",
+      "location": "Bengaluru",
+      "secondaryLocations": [],
+      "publishedAt": "2026-04-17T11:56:48.684+00:00",
+      "isListed": true,
+      "isRemote": false,
+      "workplaceType": "OnSite",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "Karnataka",
+          "addressCountry": "India",
+          "addressLocality": "Bengaluru"
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/sarvam/7c42207a-bb56-413c-839f-9ad692df840e",
+      "applyUrl": "https://jobs.ashbyhq.com/sarvam/7c42207a-bb56-413c-839f-9ad692df840e/application",
+      "descriptionHtml": "<p style=\"min-height:1.5em\"><strong>About Sarvam</strong></p><p style=\"min-height:1.5em\">Sarvam is building the bedrock of Sovereign AI for India. The company is developing India's full-stack sovereign AI platform, building across research, models, infrastructure and applications with a singular foc",
+      "descriptionPlain": "About Sarvam\n\nSarvam is building the bedrock of Sovereign AI for India. The company is developing India's full-stack sovereign AI platform, building across research, models, infrastructure and applications with a singular focus on making AI genuinely work for India. Sarvam works with leading enterpr"
+    },
+    {
+      "id": "dc047f4f-97be-4bb3-a9f1-cebbfc4de3e6",
+      "title": "Embedded Data Scientist, Chanakya",
+      "department": "Engineering",
+      "team": "Engineering",
+      "employmentType": "FullTime",
+      "location": "Delhi",
+      "secondaryLocations": [],
+      "publishedAt": "2026-04-17T11:59:15.600+00:00",
+      "isListed": true,
+      "isRemote": false,
+      "workplaceType": "OnSite",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "Delhi",
+          "addressCountry": "India",
+          "addressLocality": "Delhi"
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/sarvam/dc047f4f-97be-4bb3-a9f1-cebbfc4de3e6",
+      "applyUrl": "https://jobs.ashbyhq.com/sarvam/dc047f4f-97be-4bb3-a9f1-cebbfc4de3e6/application",
+      "descriptionHtml": "<p style=\"min-height:1.5em\"><strong>About Sarvam</strong></p><p style=\"min-height:1.5em\">Sarvam is building the bedrock of Sovereign AI for India. The company is developing India's full-stack sovereign AI platform, building across research, models, infrastructure and applications with a singular foc",
+      "descriptionPlain": "About Sarvam\n\nSarvam is building the bedrock of Sovereign AI for India. The company is developing India's full-stack sovereign AI platform, building across research, models, infrastructure and applications with a singular focus on making AI genuinely work for India. Sarvam works with leading enterpr"
+    }
+  ],
+  "apiVersion": "1"
+}

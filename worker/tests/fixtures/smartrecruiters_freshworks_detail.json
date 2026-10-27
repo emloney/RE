@@ -1,0 +1,91 @@
+{
+  "id": "744000157728799",
+  "name": "Senior Account Management (EX) - Top Tier NA ",
+  "uuid": "1dbb4f50-a00f-4e26-9d9f-1a75079e7306",
+  "jobId": "cedd8895-711c-4907-b2cf-3fd05781aac1",
+  "jobAdId": "78f56d07-498f-426e-9c33-ac4c1fe27e02",
+  "defaultJobAd": true,
+  "refNumber": "P102801_1",
+  "company": {
+    "name": "Freshworks",
+    "identifier": "Freshworks"
+  },
+  "location": {
+    "city": "Chennai",
+    "country": "in",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "Chennai, , India"
+  },
+  "customField": [
+    {
+      "fieldId": "618bba30fa9dfa25d877c58b",
+      "fieldLabel": "Brands",
+      "valueId": "default",
+      "valueLabel": "Freshworks"
+    },
+    {
+      "fieldId": "COUNTRY",
+      "fieldLabel": "Country/Region",
+      "valueId": "in",
+      "valueLabel": "India"
+    }
+  ],
+  "releasedDate": "2026-10-26T06:47:08.354Z",
+  "creator": {
+    "name": "",
+    "avatarUrl": ""
+  },
+  "postingUrl": "https://jobs.smartrecruiters.com/Freshworks/744000157728799-senior-account-management-ex-top-tier-na-",
+  "applyUrl": "https://jobs.smartrecruiters.com/Freshworks/744000157728799-senior-account-management-ex-top-tier-na-?oga=true",
+  "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/Freshworks/publication/1dbb4f50-a00f-4e26-9d9f-1a75079e7306?dcr_ci=Freshworks",
+  "jobAd": {
+    "sections": {
+      "companyDescription": {
+        "title": "Company Description",
+        "text": "<p>Organizations everywhere struggle under the crushing costs and complexities of “solutions” that promise to simplify their lives. To create a better experience for their customers and employees. To help them grow. Software is a choice that can make or break a business. Create better or worse exper"
+      },
+      "jobDescription": {
+        "title": "Job Description",
+        "text": "<p>We are looking for an experienced and strategic Enterprise Account/Portfolio Manager who has a knack in building deep customer relationships and driving incremental business in existing Freshworks customers by delivering value. They should have a consultative sales approach, a successful track re"
+      },
+      "qualifications": {
+        "title": "Qualifications",
+        "text": "<p>• Experience selling to VP or C level executives in companies</p><p>• 4-8 years of overall experience in sales. 2+ years of SAAS sales experience/solution</p><p>based selling experience</p><p>• Experience in driving expanded usage in existing customers</p><p>• Track record of success selling into"
+      },
+      "additionalInformation": {
+        "title": "Additional Information",
+        "text": "<div sr-tagline=\"\"></div><p>At Freshworks, we have fostered an environment that enables everyone to find their true potential, purpose, and passion, welcoming colleagues of all backgrounds, genders, sexual orientations, religions, and ethnicities. We are committed to providing equal opportunity and "
+      }
+    }
+  },
+  "compensation": {
+    "min": 0,
+    "max": 0,
+    "currency": "INR",
+    "period": "YEARLY"
+  },
+  "active": true,
+  "visibility": "PUBLIC",
+  "industry": {
+    "id": "it_and_services",
+    "label": "Information Technology And Services"
+  },
+  "function": {
+    "id": "other",
+    "label": "Other"
+  },
+  "experienceLevel": {
+    "id": "associate",
+    "label": "Associate"
+  },
+  "typeOfEmployment": {
+    "id": "permanent",
+    "label": "Full-time"
+  },
+  "language": {
+    "code": "en",
+    "label": "English",
+    "labelNative": "English (US)"
+  }
+}

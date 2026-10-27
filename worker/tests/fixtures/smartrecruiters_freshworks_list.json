@@ -1,0 +1,181 @@
+{
+  "offset": 0,
+  "limit": 3,
+  "totalFound": 3,
+  "content": [
+    {
+      "id": "744000157728799",
+      "name": "Senior Account Management (EX) - Top Tier NA ",
+      "uuid": "1dbb4f50-a00f-4e26-9d9f-1a75079e7306",
+      "jobAdId": "78f56d07-498f-426e-9c33-ac4c1fe27e02",
+      "defaultJobAd": true,
+      "refNumber": "P102801_1",
+      "company": {
+        "identifier": "Freshworks",
+        "name": "Freshworks"
+      },
+      "releasedDate": "2026-10-26T06:47:08.354Z",
+      "location": {
+        "city": "Chennai",
+        "country": "in",
+        "remote": false,
+        "hybrid": false,
+        "fullLocation": "Chennai, , India"
+      },
+      "industry": {
+        "id": "it_and_services",
+        "label": "Information Technology And Services"
+      },
+      "department": {},
+      "function": {
+        "id": "other",
+        "label": "Other"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "associate",
+        "label": "Associate"
+      },
+      "customField": [
+        {
+          "fieldId": "618bba30fa9dfa25d877c58b",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Freshworks"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "in",
+          "valueLabel": "India"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/Freshworks/postings/744000157728799",
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    },
+    {
+      "id": "744000157394314",
+      "name": "Lead Account Executive(Benelux and Nordics)",
+      "uuid": "f6b92843-1235-4b37-96b2-c6661c68b1eb",
+      "jobAdId": "8fa863b6-ce66-400d-87a0-d89ad1fac5cf",
+      "defaultJobAd": true,
+      "refNumber": "P-1007266",
+      "company": {
+        "identifier": "Freshworks",
+        "name": "Freshworks"
+      },
+      "releasedDate": "2026-10-23T07:00:19.336Z",
+      "location": {
+        "city": "London",
+        "country": "gb",
+        "remote": false,
+        "hybrid": true,
+        "fullLocation": "London, , United Kingdom"
+      },
+      "industry": {
+        "id": "it_and_services",
+        "label": "Information Technology And Services"
+      },
+      "department": {},
+      "function": {
+        "id": "other",
+        "label": "Other"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "associate",
+        "label": "Associate"
+      },
+      "customField": [
+        {
+          "fieldId": "618bba30fa9dfa25d877c58b",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Freshworks"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "gb",
+          "valueLabel": "United Kingdom"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/Freshworks/postings/744000157394314",
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    },
+    {
+      "id": "744000157393290",
+      "name": "Lead - Account Executive(Benelux and Nordics)",
+      "uuid": "c0991134-173d-47c4-be3c-9fa37f4f2e85",
+      "jobAdId": "2b70fd39-b47a-48f9-b623-0cd8107c4487",
+      "defaultJobAd": true,
+      "refNumber": "P102296_1",
+      "company": {
+        "identifier": "Freshworks",
+        "name": "Freshworks"
+      },
+      "releasedDate": "2026-10-23T06:54:02.137Z",
+      "location": {
+        "city": "London",
+        "country": "gb",
+        "remote": false,
+        "hybrid": false,
+        "fullLocation": "London, , United Kingdom"
+      },
+      "industry": {
+        "id": "it_and_services",
+        "label": "Information Technology And Services"
+      },
+      "department": {},
+      "function": {
+        "id": "other",
+        "label": "Other"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "mid_senior_level",
+        "label": "Mid-Senior Level"
+      },
+      "customField": [
+        {
+          "fieldId": "618bba30fa9dfa25d877c58b",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Freshworks"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "gb",
+          "valueLabel": "United Kingdom"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/Freshworks/postings/744000157393290",
+      "language": {
+        "code": "en",
+        "label": "English",
+        "labelNative": "English (US)"
+      }
+    }
+  ]
+}

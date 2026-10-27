@@ -1,0 +1,30 @@
+# Secrets and personal files — never commit these
+.env
+.env.*
+!.env.example
+resume.md
+*token*.json
+credentials*.json
+client_secret*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Node / web
+node_modules/
+web/dist/
+.vercel/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

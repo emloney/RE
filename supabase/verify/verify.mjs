@@ -201,6 +201,17 @@ await check("anon cannot call worker functions or is_owner()", () =>
   }),
 );
 
+await check("telegram_updates dedupes and is invisible to the dashboard", async () => {
+  await as("service_role", null, async () => {
+    const ins = "insert into telegram_updates (update_id) values (7) on conflict do nothing returning update_id";
+    assert.equal((await q(ins)).length, 1);
+    assert.equal((await q(ins)).length, 0);
+  });
+  await as("authenticated", OWNER, async () => {
+    assert.equal((await q("select count(*)::int as n from telegram_updates"))[0].n, 0);
+  });
+});
+
 await check("owner status edit stuck", async () => {
   assert.equal((await q("select status from jobs where id = 'a'"))[0].status, "applied");
 });

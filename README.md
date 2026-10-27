@@ -4,11 +4,11 @@ A personal job-alert bot. It checks the career pages of companies **you** pick,
 several times a day, and (soon) pings you on Telegram the moment a new matching
 internship or fresher role appears, so you can apply on day 1.
 
-> **Status: work in progress.** Phases 1–5 are done: fetching jobs from career pages,
-> detecting new jobs with state stored in Supabase, filtering + AI scoring against your
-> resume, Telegram alerts, and running 4 times a day on GitHub Actions. Telegram commands
-> and buttons, the dashboard and the cold-mail tracker come next. The full beginner guide
-> will be here once those land.
+> **Status: work in progress.** Phases 1–5 and 4b are done: fetching jobs from career
+> pages, detecting new jobs with state stored in Supabase, filtering + AI scoring against
+> your resume, Telegram alerts, running 4 times a day on GitHub Actions, and Telegram
+> commands + buttons. The dashboard and the cold-mail tracker come next. The full
+> beginner guide will be here once those land.
 
 ## How it fetches jobs
 
@@ -182,6 +182,61 @@ a reminder every 12 failed runs, about 3 days).
   stop, open **Actions → Check for new jobs → Enable workflow**, or push any commit.
 - Never commit `.env` or `resume.md`. The workflow builds `resume.md` from the secret
   on every run.
+
+## Telegram commands and buttons (Phase 4b)
+
+The bot replies **only to your chat id** and ignores everyone else. Each request must
+carry your secret in Telegram's `X-Telegram-Bot-Api-Secret-Token` header.
+
+| Command | What it does |
+|---|---|
+| `/status` | Last run, companies tracked, jobs found today, failing companies |
+| `/today` | Today's new matching jobs (IST), best score first |
+| `/companies` | Tracked companies, with ✅ / ⚠️ failing / ⏸ off |
+| `/add <careers url> [name]` | Detect the ATS, check it with one API call, start tracking. The first run is a silent baseline. |
+| `/remove <company>` | Stop tracking. History is kept, and `/add` brings it back. |
+| `/pause`, `/resume` | Stop or restart alerts. Jobs are still checked and saved. |
+| `/minscore <1-10\|off>` | Only alert at or above a score. Unscored jobs always come through. |
+| `/keywords`, `/addkw [group] <phrase>`, `/rmkw <phrase>` | Show or edit role keywords |
+
+The **✅ Applied / ⭐ Interested / ❌ Skip** buttons under each alert set that job's
+status, and the button you picked is marked.
+
+**How it works:** Telegram sends every message and button press to a Vercel function
+([`api/telegram.ts`](api/telegram.ts), logic in [`server/lib`](server/lib)), which
+talks to Supabase. It runs on Vercel's free Hobby plan.
+
+**Set it up:**
+
+1. **Database:** in the Supabase SQL editor, run
+   `supabase/migrations/20261027000003_telegram.sql`.
+2. **Make a webhook secret** and add it to `.env` as `TELEGRAM_WEBHOOK_SECRET`:
+   ```bash
+   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   ```
+3. **Optional, so `/add` starts its baseline right away:** create a GitHub fine-grained
+   token (**GitHub → Settings → Developer settings → Fine-grained tokens**). Give it access
+   to **only this repo**, with permission **Actions: Read and write**. Without it, new
+   companies are baselined on the next scheduled run. Tokens expire, so note the date.
+4. **Deploy on Vercel:** [vercel.com](https://vercel.com) → sign in with GitHub →
+   **Add New → Project** → import this repo. Framework preset: **Other**, leave
+   everything else as is. Before deploying, add these **Environment Variables**:
+   `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
+   `TELEGRAM_WEBHOOK_SECRET` (the same value as in `.env`), `CONTACT_EMAIL`, and optionally
+   `GITHUB_DISPATCH_TOKEN` plus `GITHUB_REPO` (`your-username/internradar`).
+   Then click **Deploy**.
+5. **Check the function:** open `https://<your-project>.vercel.app/api/telegram` in a
+   browser. "Method not allowed" means it's running (Telegram uses POST).
+6. **Point Telegram at it:**
+   ```bash
+   python -m internradar telegram set-webhook https://<your-project>.vercel.app/api/telegram
+   ```
+   Then send `/status` to your bot. If nothing comes back, run
+   `python -m internradar telegram webhook-info` to see Telegram's last error.
+
+Vercel redeploys on every push to `main`. Once the webhook is set, `telegram chat-id`
+stops working (Telegram stops handing out messages), and `telegram delete-webhook`
+undoes it.
 
 ## Being a good citizen
 

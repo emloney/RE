@@ -11,6 +11,8 @@ py -m internradar run --alert-on-baseline   # testing only: treat first-fetch jo
 
 py -m internradar telegram chat-id          # check the bot token, find your chat id
 py -m internradar telegram test             # send yourself a sample alert
+py -m internradar telegram set-webhook https://<app>.vercel.app/api/telegram
+py -m internradar telegram webhook-info     # is the webhook working? last error?
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 import time
 from datetime import UTC, datetime
@@ -213,6 +216,64 @@ def _report(result: RunResult, *, telegram_on: bool) -> None:
     print(format_summary(result.summary))
 
 
+# Keep in sync with COMMANDS in server/lib/commands.ts (a test checks this).
+BOT_COMMANDS = [
+    ("status", "Last run, companies, today's jobs"),
+    ("today", "Today's new matching jobs"),
+    ("companies", "Companies being tracked"),
+    ("add", "Track a company: /add <careers url> [name]"),
+    ("remove", "Stop tracking: /remove <company>"),
+    ("pause", "Pause alerts"),
+    ("resume", "Resume alerts"),
+    ("minscore", "Only alert at or above a score: /minscore <1-10|off>"),
+    ("keywords", "Show your filters"),
+    ("addkw", "Add a role keyword: /addkw [group] <phrase>"),
+    ("rmkw", "Remove a role keyword: /rmkw <phrase>"),
+    ("help", "All commands"),
+]
+_SECRET_OK = re.compile(r"^[A-Za-z0-9_-]{1,256}$")
+
+
+def _webhook(bot: TelegramClient, args: argparse.Namespace) -> int:
+    if args.action == "webhook-info":
+        info = bot.call("getWebhookInfo", {})
+        print(f"url: {info.get('url') or '(none: using getUpdates)'}")
+        print(f"pending updates: {info.get('pending_update_count', 0)}")
+        if info.get("last_error_message"):
+            print(f"last error: {info['last_error_message']}")
+        return 0
+    if args.action == "delete-webhook":
+        bot.call("deleteWebhook", {})
+        print("Webhook removed. Commands and buttons stop working until you set it again.")
+        return 0
+
+    url = (args.url or "").strip()
+    if not url.startswith("https://"):
+        raise ConfigError("Give the HTTPS URL, e.g. https://your-app.vercel.app/api/telegram")
+    secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "").strip()
+    if not _SECRET_OK.match(secret):
+        raise ConfigError(
+            "Set TELEGRAM_WEBHOOK_SECRET in .env (letters, digits, _ and - only). Make one with:\n"
+            '  python -c "import secrets; print(secrets.token_urlsafe(32))"'
+        )
+    bot.call(
+        "setWebhook",
+        {
+            "url": url,
+            "secret_token": secret,
+            "allowed_updates": ["message", "callback_query"],
+            "drop_pending_updates": True,
+        },
+    )
+    bot.call(
+        "setMyCommands",
+        {"commands": [{"command": c, "description": d} for c, d in BOT_COMMANDS]},
+    )
+    print(f"Webhook set to {url}, and the / command menu is updated.")
+    print("Send /status to your bot to try it.")
+    return 0
+
+
 def _telegram(args: argparse.Namespace) -> int:
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     if not token:
@@ -222,7 +283,15 @@ def _telegram(args: argparse.Namespace) -> int:
     try:
         me = bot.call("getMe", {})
         print(f"Token works: this is @{me.get('username')} ({me.get('first_name')}).")
+        if args.action in ("set-webhook", "webhook-info", "delete-webhook"):
+            return _webhook(bot, args)
         if args.action == "chat-id":
+            if bot.call("getWebhookInfo", {}).get("url"):
+                print(
+                    "A webhook is set, so Telegram won't hand out messages here. Send /status "
+                    "to your bot instead, or run: telegram delete-webhook"
+                )
+                return 1
             updates = bot.call("getUpdates", {"limit": 100})
             chats = {
                 u["message"]["chat"]["id"]: u["message"]["chat"]
@@ -286,7 +355,10 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--trigger", default="manual", help="recorded in the runs table")
 
     t = sub.add_parser("telegram", help="set up and test the Telegram bot")
-    t.add_argument("action", choices=["chat-id", "test"])
+    t.add_argument(
+        "action", choices=["chat-id", "test", "set-webhook", "webhook-info", "delete-webhook"]
+    )
+    t.add_argument("url", nargs="?", help="for set-webhook: https://<app>.vercel.app/api/telegram")
     args = parser.parse_args(argv)
 
     commands = {"fetch": _fetch, "run": _run, "telegram": _telegram}

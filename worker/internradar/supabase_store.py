@@ -7,14 +7,21 @@ must only ever run in the worker or serverless functions, never in a browser.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 
 from internradar.detect import KnownJob, SyncPlan, TrackedCompany
 from internradar.models import Company
-from internradar.store import RunSummary, company_from_row, company_row, job_row
+from internradar.store import (
+    PendingJob,
+    RunSummary,
+    company_from_row,
+    company_row,
+    job_from_row,
+    job_row,
+)
 from internradar.text import parse_dt
 
 log = logging.getLogger(__name__)
@@ -132,10 +139,19 @@ class SupabaseStore:
         return rows[0]["id"]
 
     def apply_sync(
-        self, run_id: str, plan: SyncPlan, company: Company, now: datetime, duration_s: float
+        self,
+        run_id: str,
+        plan: SyncPlan,
+        company: Company,
+        now: datetime,
+        duration_s: float,
+        filter_rows: dict[str, dict[str, Any]] | None = None,
     ) -> None:
         # 1) Insert new jobs. ignore-duplicates makes this safe to repeat after a crash.
-        rows = [job_row(plan, run_id, now, new) for new in plan.inserts]
+        filter_rows = filter_rows or {}
+        rows = [
+            job_row(plan, run_id, now, new, filter_rows.get(new.job.id)) for new in plan.inserts
+        ]
         for i in range(0, len(rows), INSERT_CHUNK):
             self._call(
                 "POST",
@@ -174,6 +190,49 @@ class SupabaseStore:
                     "p_now": now.isoformat(),
                 },
             )
+        )
+
+    def pending_jobs(self, since: datetime) -> list[PendingJob]:
+        rows = self._select_all(
+            "jobs",
+            {
+                "select": "*,companies(*)",
+                "is_baseline": "is.false",
+                "duplicate_of": "is.null",
+                "alerted_at": "is.null",
+                "scored_at": "is.null",
+                "or": "(filter_passed.is.null,filter_passed.is.true)",
+                "first_seen_at": f"gte.{since.isoformat()}",
+                "order": "first_seen_at",
+            },
+        )
+        pending = []
+        for row in rows:
+            company_row_ = row.pop("companies")
+            company = company_from_row(company_row_)
+            pending.append(PendingJob(company_row_["id"], company, job_from_row(row, company.name)))
+        return pending
+
+    def save_evaluation(self, job_id: str, fields: dict[str, Any]) -> None:
+        self._call(
+            "PATCH",
+            "/jobs",
+            params={"id": f"eq.{job_id}"},
+            json=fields,
+            headers={"Prefer": "return=minimal"},
+        )
+
+    def load_filters(self) -> dict[str, Any] | None:
+        rows = self._call("GET", "/settings", params={"select": "filters", "id": "eq.1"})
+        return rows[0]["filters"] if rows else None
+
+    def save_filters(self, filters: dict[str, Any]) -> None:
+        self._call(
+            "PATCH",
+            "/settings",
+            params={"id": "eq.1"},
+            json={"filters": filters, "updated_at": datetime.now(UTC).isoformat()},
+            headers={"Prefer": "return=minimal"},
         )
 
     def finish_run(self, run_id: str, summary: RunSummary, now: datetime) -> None:

@@ -11,10 +11,21 @@ from datetime import datetime
 from typing import Any, Protocol
 
 from internradar.detect import KnownJob, NewJob, SyncPlan, TrackedCompany
-from internradar.models import Company
-from internradar.text import normalise_title
+from internradar.models import ATS, Company, Job
+from internradar.text import normalise_title, parse_dt
 
 DESCRIPTION_LIMIT = 20_000  # characters stored per job (the LLM only sees ~6k)
+# ATSs whose list call has no description: an empty one means "fetch details".
+DETAILS_ATS = {ATS.workday, ATS.smartrecruiters}
+
+
+@dataclass(frozen=True)
+class PendingJob:
+    """A new job that still needs filtering/scoring (e.g. after a crash mid-run)."""
+
+    company_uuid: str
+    company: Company
+    job: Job
 
 
 @dataclass
@@ -43,8 +54,15 @@ class Store(Protocol):
     def start_run(self, trigger: str, now: datetime) -> str: ...
 
     def apply_sync(
-        self, run_id: str, plan: SyncPlan, company: Company, now: datetime, duration_s: float
-    ) -> None: ...
+        self,
+        run_id: str,
+        plan: SyncPlan,
+        company: Company,
+        now: datetime,
+        duration_s: float,
+        filter_rows: dict[str, dict[str, Any]] | None = None,
+    ) -> None:
+        """Save new jobs (with their rule-filter result) and seen/missing/closed updates."""
 
     def record_failure(
         self, run_id: str, company_uuid: str, error: str, now: datetime, duration_s: float
@@ -53,11 +71,31 @@ class Store(Protocol):
 
     def finish_run(self, run_id: str, summary: RunSummary, now: datetime) -> None: ...
 
+    def pending_jobs(self, since: datetime) -> list[PendingJob]:
+        """New (non-baseline, non-duplicate) jobs since `since` that were never scored
+        or alerted and weren't filtered out."""
 
-def job_row(plan: SyncPlan, run_id: str, now: datetime, new: NewJob) -> dict[str, Any]:
+    def save_evaluation(self, job_id: str, fields: dict[str, Any]) -> None: ...
+
+    def load_filters(self) -> dict[str, Any] | None: ...
+
+    def save_filters(self, filters: dict[str, Any]) -> None: ...
+
+
+def job_row(
+    plan: SyncPlan,
+    run_id: str,
+    now: datetime,
+    new: NewJob,
+    filter_row: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Database row for a newly seen job (shared by both stores)."""
     job = new.job
+    # Every row must have the same keys: PostgREST rejects bulk inserts that don't.
+    filters = {"filter_passed": None, "filter_reason": None, "category": None}
+    filters.update(filter_row or {})
     return {
+        **filters,
         "id": job.id,
         "company_id": plan.company_uuid,
         "ats_job_id": job.ats_job_id,
@@ -96,6 +134,37 @@ def company_row(company: Company) -> dict[str, Any]:
     }
 
 
+def job_from_row(row: dict[str, Any], company_name: str) -> Job:
+    ats = ATS(row["source_ats"])
+    description = row.get("description_text") or ""
+    posted = row.get("posted_at")
+    return Job(
+        id=row["id"],
+        company=company_name,
+        ats_job_id=row.get("ats_job_id"),
+        title=row["title"],
+        location=row.get("location") or "",
+        is_remote=bool(row.get("is_remote")),
+        department=row.get("department"),
+        url=row["url"],
+        posted_at=posted if isinstance(posted, datetime) else parse_dt(posted),
+        description_text=description,
+        source_ats=ats,
+        needs_details=not description and ats in DETAILS_ATS,
+    )
+
+
+def evaluation_row(job: Job) -> dict[str, Any]:
+    """Fields a details fetch may have filled in, to save alongside the evaluation."""
+    return {
+        "location": job.location,
+        "is_remote": job.is_remote,
+        "url": job.url,
+        "posted_at": job.posted_at.isoformat() if job.posted_at else None,
+        "description_text": job.description_text[:DESCRIPTION_LIMIT],
+    }
+
+
 def company_from_row(row: dict[str, Any]) -> Company:
     return Company.model_validate(
         {
@@ -121,6 +190,7 @@ class MemoryStore:
         self.jobs: dict[str, dict[str, Any]] = {}
         self.runs: dict[str, dict[str, Any]] = {}
         self.fetches: list[dict[str, Any]] = []
+        self.filters: dict[str, Any] | None = None
 
     def sync_companies(self, companies: list[Company]) -> list[str]:
         added = []
@@ -170,17 +240,24 @@ class MemoryStore:
         return run_id
 
     def apply_sync(
-        self, run_id: str, plan: SyncPlan, company: Company, now: datetime, duration_s: float
+        self,
+        run_id: str,
+        plan: SyncPlan,
+        company: Company,
+        now: datetime,
+        duration_s: float,
+        filter_rows: dict[str, dict[str, Any]] | None = None,
     ) -> None:
         for new in plan.inserts:
             if new.job.id not in self.jobs:
-                row = job_row(plan, run_id, now, new)
+                row = job_row(plan, run_id, now, new, (filter_rows or {}).get(new.job.id))
                 row.update(
                     first_seen_at=now,
                     last_seen_at=now,
                     missing_runs=0,
                     closed_at=None,
                     alerted_at=None,
+                    scored_at=None,
                 )
                 self.jobs[new.job.id] = row
         for jid in plan.seen_ids:
@@ -215,6 +292,32 @@ class MemoryStore:
     def finish_run(self, run_id: str, summary: RunSummary, now: datetime) -> None:
         self.runs[run_id].update(status=summary.status, finished_at=now, summary=summary)
 
+    def pending_jobs(self, since: datetime) -> list[PendingJob]:
+        pending = []
+        for row in sorted(self.jobs.values(), key=lambda r: r["first_seen_at"]):
+            if (
+                not row["is_baseline"]
+                and row["duplicate_of"] is None
+                and row["alerted_at"] is None
+                and row["scored_at"] is None
+                and row["filter_passed"] is not False
+                and row["first_seen_at"] >= since
+            ):
+                company = company_from_row(self.companies[row["company_id"]])
+                pending.append(
+                    PendingJob(row["company_id"], company, job_from_row(row, company.name))
+                )
+        return pending
+
+    def save_evaluation(self, job_id: str, fields: dict[str, Any]) -> None:
+        self.jobs[job_id].update(fields)
+
+    def load_filters(self) -> dict[str, Any] | None:
+        return self.filters
+
+    def save_filters(self, filters: dict[str, Any]) -> None:
+        self.filters = filters
+
 
 class ReadOnlyStore:
     """Reads go to the real store; writes are skipped. Used for --dry-run."""
@@ -241,4 +344,16 @@ class ReadOnlyStore:
         return 0
 
     def finish_run(self, *args: Any, **kwargs: Any) -> None:
+        return None
+
+    def pending_jobs(self, since: datetime) -> list[PendingJob]:
+        return self.inner.pending_jobs(since)
+
+    def save_evaluation(self, *args: Any, **kwargs: Any) -> None:
+        return None
+
+    def load_filters(self) -> dict[str, Any] | None:
+        return self.inner.load_filters()
+
+    def save_filters(self, *args: Any, **kwargs: Any) -> None:
         return None

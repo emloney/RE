@@ -4,10 +4,10 @@ A personal job-alert bot. It checks the career pages of companies **you** pick,
 several times a day, and (soon) pings you on Telegram the moment a new matching
 internship or fresher role appears, so you can apply on day 1.
 
-> **Status: work in progress.** Phases 1–2 are done: fetching jobs from career pages,
-> and detecting new jobs with state stored in Supabase. Filtering, AI scoring, Telegram
-> alerts, scheduling, the dashboard and the cold-mail tracker come next. The full
-> beginner guide will be here once those land.
+> **Status: work in progress.** Phases 1–3 are done: fetching jobs from career pages,
+> detecting new jobs with state stored in Supabase, and filtering + AI scoring against
+> your resume. Telegram alerts, scheduling, the dashboard and the cold-mail tracker
+> come next. The full beginner guide will be here once those land.
 
 ## How it fetches jobs
 
@@ -79,6 +79,33 @@ python -m internradar run                     # every enabled company
 To check the SQL without Supabase: `cd supabase/verify && npm install && npm test`
 runs the migrations in PGlite (Postgres in WebAssembly) and checks the functions
 and the Row-Level Security policies.
+
+## Filtering and AI scoring (Phase 3)
+
+1. **Rule filter** (free, instant): [`filters.yaml`](filters.yaml) checks the role
+   keywords in the title, rules out senior titles and "3+ years" asks, and keeps only
+   Bengaluru or India-eligible remote jobs. Every job's verdict is saved with the reason,
+   for example `level: title says 'senior'`. The file only seeds the database once;
+   later you'll edit filters from Telegram or the dashboard.
+2. **LLM score** (only for new jobs that pass): your `resume.md` and the job description
+   go to the LLM, which returns `{"score": 1-10, "why": "...", "missing_skills": [...]}`.
+   Bad JSON or an API error is retried once. If it still fails, the job keeps a blank
+   score and is **still alerted**. Each job is scored at most once.
+
+Setup:
+
+- Get a free key at [console.groq.com/keys](https://console.groq.com/keys) and put it in
+  `.env` as `GROQ_API_KEY=gsk_...`. The default model is `openai/gpt-oss-20b`.
+  Groq's free tier allows about 30 requests and 8K tokens per minute, so a busy run
+  pauses between jobs, which is normal.
+- Save your resume as plain text or Markdown in `resume.md` at the repo root. It's
+  git-ignored and only ever sent to the LLM.
+- Other providers: set `LLM_PROVIDER` to `openai`, `gemini` or `ollama` and `LLM_MODEL`
+  (see `.env.example`).
+
+```bash
+python -m internradar run --dry-run --alert-on-baseline --company "Sarvam AI"
+```
 
 ## Being a good citizen
 

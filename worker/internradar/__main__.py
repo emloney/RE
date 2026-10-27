@@ -19,10 +19,17 @@ import os
 import sys
 import time
 
-from internradar.config import ConfigError, contact_email, load_companies, load_env
+import yaml
+from pydantic import ValidationError
+
+from internradar.config import ConfigError, contact_email, load_companies, load_env, repo_root
+from internradar.evaluate import Evaluator, sort_matches
 from internradar.fetch import fetch_all, fill_details
+from internradar.filters import FilterConfig
 from internradar.http import PoliteClient
+from internradar.llm import llm_from_env
 from internradar.run import UnknownCompany, format_summary, run_once
+from internradar.scorer import load_resume
 from internradar.store import MemoryStore, ReadOnlyStore, Store
 from internradar.supabase_store import StoreError, SupabaseStore
 
@@ -86,8 +93,31 @@ def _make_store(dry_run: bool) -> Store:
     raise ConfigError("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env (or use --dry-run)")
 
 
+def _make_evaluator(store: Store) -> Evaluator:
+    filters = store.load_filters()
+    if filters is None:  # first run: seed the database from filters.yaml
+        filters = yaml.safe_load((repo_root() / "filters.yaml").read_text(encoding="utf-8")) or {}
+        store.save_filters(filters)
+    try:
+        config = FilterConfig.model_validate(filters)
+    except ValidationError as exc:
+        raise ConfigError(f"filters are invalid: {exc.errors()[0]['msg']}") from exc
+
+    llm, llm_info = llm_from_env()
+    resume = load_resume(repo_root() / "resume.md")
+    reason = "" if llm else llm_info
+    if resume is None:
+        reason = "resume.md not found"
+    if reason:
+        print(f"Scoring is off ({reason}). Jobs are still filtered and saved.\n")
+    else:
+        print(f"Scoring with {llm_info}.\n")
+    return Evaluator(config, llm, resume, no_llm_reason=reason)
+
+
 def _run(args: argparse.Namespace) -> int:
     store = _make_store(args.dry_run)
+    evaluator = _make_evaluator(store)
     with PoliteClient(contact_email()) as http:
         result = run_once(
             store,
@@ -96,12 +126,23 @@ def _run(args: argparse.Namespace) -> int:
             only=args.company,
             alert_on_baseline=args.alert_on_baseline,
             trigger=args.trigger,
+            evaluator=evaluator,
         )
 
-    verb = "Would alert" if args.dry_run else "New"
-    for found in result.new_jobs:
-        job = found.new.job
-        print(f"🆕 {verb}: {job.company} — {job.title} | {job.location or '-'}\n   {job.url}")
+    verb = "Would alert" if args.dry_run else "Match"
+    for ev in sort_matches(result.evaluated):
+        job = ev.job
+        score = f"{ev.score.score}/10 — {ev.score.why}" if ev.score else "not scored"
+        print(f"🆕 {verb}: {job.company} — {job.title} | {job.location or '-'}")
+        print(f"   ⭐ {score}")
+        if ev.score and ev.score.missing_skills:
+            print(f"   missing: {', '.join(ev.score.missing_skills)}")
+        print(f"   🔗 {job.url}")
+    skipped = [ev for ev in result.evaluated if not ev.matched]
+    if skipped:
+        print(f"\nSkipped {len(skipped)} new jobs that don't match your filters:")
+        for ev in skipped:
+            print(f"   ✗ {ev.job.company} — {ev.job.title}: {ev.filter.reason}")
     print()
     print(format_summary(result.summary))
     return 1 if result.summary.status == "failed" else 0

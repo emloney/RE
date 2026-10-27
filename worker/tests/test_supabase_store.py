@@ -93,6 +93,44 @@ def test_apply_sync_inserts_then_calls_rpc():
     assert args["p_seen"] == ["j0"] and args["p_closed"] == ["jx"] and args["p_duration_ms"] == 1500
 
 
+def test_pending_jobs_query_and_parsing():
+    seen = {}
+
+    def handler(request):
+        seen.update(request.url.params)
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "id": "j1",
+                    "ats_job_id": "744",
+                    "title": "Data Analyst",
+                    "location": "Bengaluru",
+                    "is_remote": False,
+                    "department": None,
+                    "url": "https://jobs.smartrecruiters.com/Freshworks/744",
+                    "posted_at": "2026-10-26T06:47:08+00:00",
+                    "description_text": "",
+                    "source_ats": "smartrecruiters",
+                    "companies": {
+                        "id": "c1",
+                        "name": "Freshworks",
+                        "ats": "smartrecruiters",
+                        "ats_id": "Freshworks",
+                        "enabled": True,
+                    },
+                }
+            ],
+        )
+
+    (p,) = make(handler).pending_jobs(NOW)
+    assert seen["scored_at"] == "is.null" and seen["is_baseline"] == "is.false"
+    assert seen["or"] == "(filter_passed.is.null,filter_passed.is.true)"
+    assert seen["select"] == "*,companies(*)"
+    assert p.company_uuid == "c1" and p.company.name == "Freshworks"
+    assert p.job.needs_details  # empty description on a list-only ATS
+
+
 def test_errors_never_include_the_key():
     def handler(request):
         return httpx.Response(401, json={"message": "Invalid API key"})

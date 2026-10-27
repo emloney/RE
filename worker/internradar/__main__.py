@@ -31,9 +31,10 @@ from internradar.config import ConfigError, contact_email, load_companies, load_
 from internradar.evaluate import Evaluator, sort_matches
 from internradar.fetch import fetch_all, fill_details
 from internradar.filters import FilterConfig
+from internradar.health import crash_warning, notify, run_warnings
 from internradar.http import PoliteClient
 from internradar.llm import llm_from_env
-from internradar.run import UnknownCompany, format_summary, run_once
+from internradar.run import RunResult, UnknownCompany, format_summary, run_once
 from internradar.scorer import load_resume
 from internradar.store import MemoryStore, ReadOnlyStore, Store
 from internradar.supabase_store import StoreError, SupabaseStore
@@ -133,22 +134,60 @@ def _make_sender(dry_run: bool) -> Sender | None:
 
 
 def _run(args: argparse.Namespace) -> int:
-    store = _make_store(args.dry_run)
-    evaluator = _make_evaluator(store)
-    sender = _make_sender(args.dry_run)
-    with PoliteClient(contact_email()) as http:
-        result = run_once(
-            store,
-            load_companies(),
-            http,
-            only=args.company,
-            alert_on_baseline=args.alert_on_baseline,
-            trigger=args.trigger,
-            evaluator=evaluator,
-            sender=sender,
-        )
-    if isinstance(sender, TelegramClient):
-        sender.close()
+    sender = _make_sender(args.dry_run)  # first, so even a setup crash can be reported
+    try:
+        try:
+            store = _make_store(args.dry_run)
+            evaluator = _make_evaluator(store)
+            with PoliteClient(contact_email()) as http:
+                result = run_once(
+                    store,
+                    load_companies(),
+                    http,
+                    only=args.company,
+                    alert_on_baseline=args.alert_on_baseline,
+                    trigger=args.trigger,
+                    evaluator=evaluator,
+                    sender=sender,
+                )
+        except UnknownCompany:
+            raise  # a typo in --company isn't worth a Telegram warning
+        except Exception as exc:
+            notify(sender, [crash_warning(exc)])
+            raise
+        notify(sender, run_warnings(result))
+    finally:
+        if isinstance(sender, TelegramClient):
+            sender.close()
+
+    _report(result, telegram_on=sender is not None)
+    _write_step_summary(result)
+    return 1 if result.summary.status == "failed" else 0
+
+
+def _write_step_summary(result: RunResult) -> None:
+    """On GitHub Actions, show the run summary on the run's page."""
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    s = result.summary
+    lines = [
+        f"### InternRadar run: {s.status}",
+        "",
+        "| Companies checked | Failed | New jobs | Matches | Alerts sent | LLM calls | Duration |",
+        "|---|---|---|---|---|---|---|",
+        f"| {s.companies_checked} | {s.companies_failed} | {s.new_jobs} | "
+        f"{sum(1 for e in result.evaluated if e.matched)} | {s.alerts_sent} | {s.llm_calls} | "
+        f"{s.duration_s:.0f}s |",
+    ]
+    if s.failures:
+        lines += ["", "**Failed companies**", ""]
+        lines += [f"- {name}: `{err[:200]}`" for name, err in s.failures]
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def _report(result: RunResult, *, telegram_on: bool) -> None:
     if result.alerts and result.alerts.paused:
         print("Alerts are paused, so nothing was sent.")
     if result.alerts and result.alerts.held_by_min_score:
@@ -157,7 +196,7 @@ def _run(args: argparse.Namespace) -> int:
         print(f"⚠ alert not sent: {problem}")
 
     # With Telegram off, list the matches here (a dry run already printed the messages).
-    for ev in sort_matches(result.evaluated) if sender is None else []:
+    for ev in sort_matches(result.evaluated) if not telegram_on else []:
         job = ev.job
         score = f"{ev.score.score}/10 — {ev.score.why}" if ev.score else "not scored"
         print(f"🆕 Match: {job.company} — {job.title} | {job.location or '-'}")
@@ -172,7 +211,6 @@ def _run(args: argparse.Namespace) -> int:
             print(f"   ✗ {ev.job.company} — {ev.job.title}: {ev.filter.reason}")
     print()
     print(format_summary(result.summary))
-    return 1 if result.summary.status == "failed" else 0
 
 
 def _telegram(args: argparse.Namespace) -> int:

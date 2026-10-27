@@ -41,7 +41,7 @@ class RunResult:
     evaluated: list[Evaluated] = field(default_factory=list)
     alerts: AlertReport | None = None
     added_companies: list[str] = field(default_factory=list)
-    # Companies whose failure streak just reached a warning threshold (Phase 5 alerts on this).
+    # Consecutive-failure count for each company that failed this run (health.py warns on it).
     failure_streaks: dict[str, int] = field(default_factory=dict)
 
 
@@ -166,8 +166,7 @@ def _check_company(
         streak = store.record_failure(
             run_id, tracked.uuid, error or "unknown error", now(), fetched.duration_s
         )
-        if streak >= 3:
-            result.failure_streaks[tracked.company.name] = streak
+        result.failure_streaks[tracked.company.name] = streak
         log.warning("%s: %s", tracked.company.name, error)
         return
 

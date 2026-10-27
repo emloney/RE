@@ -7,6 +7,7 @@ import json
 from datetime import UTC, datetime
 
 import httpx
+import pytest
 
 from internradar.adapters import get_adapter
 from internradar.models import ATS, Company
@@ -122,6 +123,28 @@ def test_workday_uses_first_page_total(load_fixture, client_for):
     assert offsets == [0, 20]
     assert len(jobs) == 25
     assert len({j.id for j in jobs}) == 25
+
+
+def test_workday_page_cap_raises_instead_of_returning_a_partial_list(
+    load_fixture, client_for, monkeypatch
+):
+    """A cut-off list would make the remaining jobs look missing and get them closed."""
+    from internradar.adapters import workday
+    from internradar.http import FetchError
+
+    monkeypatch.setattr(workday, "MAX_PAGES", 2)
+    page = load_fixture("workday_intel_list.json")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        offset = json.loads(request.content)["offset"]
+        body = {**page, "total": 1000}
+        body["jobPostings"] = [
+            {**page["jobPostings"][0], "externalPath": f"/job/X/J_{offset + i}"} for i in range(20)
+        ]
+        return httpx.Response(200, json=body)
+
+    with pytest.raises(FetchError, match="workday_search"):
+        get_adapter(ATS.workday, client_for(handler)).list_jobs(INTEL)
 
 
 def test_workday_multi_location_left_blank_until_details(load_fixture, client_for):

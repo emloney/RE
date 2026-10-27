@@ -16,6 +16,7 @@ import re
 from typing import Any
 
 from internradar.adapters.base import Adapter
+from internradar.http import FetchError
 from internradar.models import ATS, Company, Job, make_job_id
 from internradar.text import html_to_text, looks_remote, parse_dt
 
@@ -66,8 +67,11 @@ class WorkdayAdapter(Adapter):
             offset += len(postings)
             if not postings or offset >= total:
                 return jobs
-        log.warning("%s: stopped after %d pages", company.name, MAX_PAGES)
-        return jobs
+        # Fail instead of returning a cut-off list: otherwise every job past the
+        # cap would look "missing" and eventually get marked closed.
+        raise FetchError(
+            f"more than {MAX_PAGES * PAGE_SIZE} jobs; set workday_search to narrow it down"
+        )
 
     def _parse(self, company: Company, raw: dict[str, Any]) -> Job:
         path = raw["externalPath"]  # e.g. /job/India-Bangalore/Accountant_JR0283198

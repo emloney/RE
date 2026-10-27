@@ -11,6 +11,7 @@ from typing import Any
 from urllib.parse import quote
 
 from internradar.adapters.base import Adapter
+from internradar.http import FetchError
 from internradar.models import ATS, Company, Job, make_job_id
 from internradar.text import clean_location, html_to_text, looks_remote, parse_dt
 
@@ -45,8 +46,8 @@ class SmartRecruitersAdapter(Adapter):
             offset += len(content)
             if not content or offset >= int(data.get("totalFound") or 0):
                 return jobs
-        log.warning("%s: stopped after %d pages", company.name, MAX_PAGES)
-        return jobs
+        # A cut-off list would make the rest look "missing" (and later closed).
+        raise FetchError(f"more than {MAX_PAGES * PAGE_SIZE} jobs; too many to track safely")
 
     def _parse(self, company: Company, raw: dict[str, Any]) -> Job:
         loc = raw.get("location") or {}

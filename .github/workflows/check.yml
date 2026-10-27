@@ -1,0 +1,120 @@
+name: Check for new jobs
+
+on:
+  schedule:
+    # 08:00, 12:00, 16:00 and 20:00 IST.
+    # GitHub cron is in UTC, and IST = UTC+5:30, so subtract 5 h 30 min:
+    #   08:00 IST -> 02:30 UTC
+    #   12:00 IST -> 06:30 UTC
+    #   16:00 IST -> 10:30 UTC
+    #   20:00 IST -> 14:30 UTC
+    # Minute 30 in UTC also avoids the busy top of the UTC hour, when GitHub delays
+    # scheduled runs the most. Runs can still start several minutes late.
+    - cron: "30 2,6,10,14 * * *"
+  workflow_dispatch:
+    inputs:
+      company:
+        description: "Only this company (leave empty for all)"
+        type: string
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run: print alerts, write nothing"
+        type: boolean
+        default: false
+      alert_on_baseline:
+        description: "TESTING ONLY: alert on a company's first-fetch jobs"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: write # only for the monthly keepalive step below
+
+# Never run two checks at once (a manual run during a scheduled one waits its turn).
+concurrency:
+  group: internradar-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      INTERNRADAR_HOME: ${{ github.workspace }}
+      INTERNRADAR_WARNED_FILE: ${{ runner.temp }}/internradar-warned
+      CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
+      LLM_MODEL: ${{ vars.LLM_MODEL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: worker/pyproject.toml
+
+      - name: Install
+        working-directory: worker
+        run: pip install -e .
+
+      - name: Write resume.md from the RESUME_MD secret
+        env:
+          RESUME_MD: ${{ secrets.RESUME_MD }}
+        run: |
+          if [ -n "$RESUME_MD" ]; then
+            printf '%s\n' "$RESUME_MD" > resume.md
+          else
+            echo "RESUME_MD secret not set: jobs will be filtered but not scored."
+          fi
+
+      - name: Check career pages
+        id: run
+        working-directory: worker
+        env:
+          # Inputs go through env (not ${{ }} inside the script) so they can't inject shell code.
+          COMPANY: ${{ inputs.company }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          ALERT_ON_BASELINE: ${{ inputs.alert_on_baseline }}
+          TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || 'manual' }}
+        run: |
+          args=(run --trigger "$TRIGGER")
+          if [ -n "$COMPANY" ]; then args+=(--company "$COMPANY"); fi
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          if [ "$ALERT_ON_BASELINE" = "true" ]; then args+=(--alert-on-baseline); fi
+          python -m internradar "${args[@]}"
+
+      # The run itself sends a Telegram warning when it fails. This covers failures it
+      # can't report (setup broke, or Python crashed before it could send anything).
+      - name: Warn on Telegram if the workflow failed silently
+        if: failure()
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -f "$INTERNRADAR_WARNED_FILE" ] || [ -z "$TELEGRAM_BOT_TOKEN" ]; then exit 0; fi
+          curl -sS -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=⚠️ InternRadar workflow failed: ${RUN_URL}"
+
+      # Keepalive: in PUBLIC repos GitHub disables scheduled workflows after 60 days
+      # without repository activity. Once a month, re-enable this workflow through the
+      # API. GitHub doesn't document whether this resets the 60-day timer, so also see
+      # the README for how to re-enable it by hand. Private repos aren't affected.
+      - name: Monthly keepalive
+        if: always() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The first scheduled run on the 1st (02:30 UTC, maybe a bit late).
+          if [ "$(date -u +%d)" = "01" ] && [ "$(date -u +%H)" -lt 6 ]; then
+            gh workflow enable check.yml --repo "${{ github.repository }}"
+            echo "Keepalive: re-enabled check.yml"
+          fi

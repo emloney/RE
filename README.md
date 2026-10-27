@@ -4,11 +4,11 @@ A personal job-alert bot. It checks the career pages of companies **you** pick,
 several times a day, and (soon) pings you on Telegram the moment a new matching
 internship or fresher role appears, so you can apply on day 1.
 
-> **Status: work in progress.** Phases 1–4 (alerts) are done: fetching jobs from career
-> pages, detecting new jobs with state stored in Supabase, filtering + AI scoring against
-> your resume, and Telegram alerts. Scheduling, Telegram commands and buttons, the
-> dashboard and the cold-mail tracker come next. The full beginner guide will be here
-> once those land.
+> **Status: work in progress.** Phases 1–5 are done: fetching jobs from career pages,
+> detecting new jobs with state stored in Supabase, filtering + AI scoring against your
+> resume, Telegram alerts, and running 4 times a day on GitHub Actions. Telegram commands
+> and buttons, the dashboard and the cold-mail tracker come next. The full beginner guide
+> will be here once those land.
 
 ## How it fetches jobs
 
@@ -141,6 +141,47 @@ repeat it. (The buttons start working once the webhook is added in a later phase
    ```bash
    python -m internradar telegram test
    ```
+
+## Run it 4 times a day on GitHub Actions (Phase 5)
+
+[`.github/workflows/check.yml`](.github/workflows/check.yml) runs the checker at
+**08:00, 12:00, 16:00 and 20:00 IST** (cron `30 2,6,10,14 * * *`, in UTC). All state
+lives in Supabase, because GitHub wipes the runner after every run.
+
+1. **Create a GitHub repo** and push this code to its **default branch** (`main`).
+   Scheduled workflows only run from the default branch. A **private** repo is simplest
+   for personal use: it gets 2,000 free Actions minutes a month (this uses roughly
+   300–400) and is never auto-disabled.
+2. **Add secrets** under **Settings → Secrets and variables → Actions → New repository secret**:
+
+   | Secret | Value |
+   |---|---|
+   | `SUPABASE_URL` | your Project URL |
+   | `SUPABASE_SERVICE_ROLE_KEY` | the secret key |
+   | `TELEGRAM_BOT_TOKEN` | from @BotFather |
+   | `TELEGRAM_CHAT_ID` | from `telegram chat-id` |
+   | `GROQ_API_KEY` | from console.groq.com |
+   | `CONTACT_EMAIL` | your email (used in the User-Agent) |
+   | `RESUME_MD` | paste the **whole text** of your `resume.md` |
+
+   Optional, on the **Variables** tab: `LLM_PROVIDER` and `LLM_MODEL`.
+3. **Try it by hand:** **Actions → Check for new jobs → Run workflow**. You can tick
+   *dry run* first. The run page shows a summary table (companies, failures, new jobs,
+   alerts, LLM calls, time).
+
+**If something breaks** you get a Telegram warning: when a whole run fails or crashes,
+when the workflow itself fails, and when the same company fails 3 runs in a row (then
+a reminder every 12 failed runs, about 3 days).
+
+**Good to know:**
+
+- GitHub can start scheduled runs **several minutes late**, sometimes more when it's busy.
+- In a **public** repo, GitHub **disables scheduled workflows after 60 days with no
+  repository activity** (no commits). The workflow re-enables itself through the API
+  once a month, but GitHub doesn't document whether that resets the timer. If alerts
+  stop, open **Actions → Check for new jobs → Enable workflow**, or push any commit.
+- Never commit `.env` or `resume.md`. The workflow builds `resume.md` from the secret
+  on every run.
 
 ## Being a good citizen
 

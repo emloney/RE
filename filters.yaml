@@ -1,0 +1,77 @@
+# Which jobs are worth alerting on. Cheap rules run before the LLM.
+#
+# Like companies.yaml, this SEEDS the database once: after that, edit the
+# filters from Telegram (/addkw, /rmkw) or the dashboard. To re-seed from this
+# file, clear settings.filters in Supabase.
+#
+# Matching is case-insensitive and on whole words ("ai" won't match "email").
+
+# Role keywords, matched against the job TITLE. The group name becomes the job's category.
+roles:
+  aiml:
+    - machine learning
+    - ml
+    - ai
+    - artificial intelligence
+    - genai
+    - gen ai
+    - generative ai
+    - llm
+    - nlp
+    - deep learning
+    - computer vision
+    - data science
+    - data scientist
+  data:
+    - data analyst
+    - data analytics
+    - business analyst
+    - analytics
+    - business intelligence
+    - bi analyst
+
+# Signals that a role is for students/freshers, matched in the title OR description.
+levels:
+  - intern
+  - internship
+  - trainee
+  - graduate
+  - fresher
+  - freshers
+  - entry level
+  - entry-level
+  - new grad
+  - apprentice
+  - "0-1 years"
+  - "0-2 years"
+# true: a job needs one of the signals above (or an experience ask of at most 1 year).
+# false: any job that isn't excluded passes.
+require_level_match: true
+
+# Title words that rule a job out.
+exclude_titles:
+  - senior
+  - sr
+  - lead
+  - staff
+  - principal
+  - manager
+  - director
+  - head
+  - vp
+  - vice president
+  - architect
+
+# Rule out jobs whose description asks for more years of experience than this.
+max_experience_years: 2
+# Rule out jobs where a PhD is required.
+exclude_phd_required: true
+
+# Locations that count. "Remote" passes only if it's India-eligible
+# (mentions India, or just says "Remote" with no other country).
+locations:
+  - bengaluru
+  - bangalore
+  - blr
+  - karnataka
+remote_ok: true

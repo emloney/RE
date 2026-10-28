@@ -296,6 +296,7 @@
   ats: smartrecruiters
   id: loophealth
   careers_url: https://jobs.smartrecruiters.com/loophealth
+  enabled: false # its real job list is on Keka: see "Loop Health (Keka)" below
 
 - name: InterviewBit
   ats: smartrecruiters
@@ -306,3 +307,70 @@
   ats: lever
   id: epifi
   careers_url: https://jobs.lever.co/epifi
+
+# --- Keka (id = the subdomain in https://<id>.keka.com/careers) ------------------
+# Needs supabase/migrations/20261028000004_keka.sql to have been run once.
+- name: Teachmint
+  ats: keka
+  id: teachmint
+  careers_url: https://teachmint.keka.com/careers/
+
+- name: Vyapar
+  ats: keka
+  id: vyaparapp
+  careers_url: https://vyaparapp.keka.com/careers/
+
+- name: GoKwik
+  ats: keka
+  id: gokwik
+  careers_url: https://gokwik.keka.com/careers/
+
+- name: Open Financial Technologies
+  ats: keka
+  id: openfinancial
+  careers_url: https://openfinancial.keka.com/careers/
+
+- name: Ati Motors
+  ats: keka
+  id: atirobotics
+  careers_url: https://atirobotics.keka.com/careers/
+
+- name: Bhanzu
+  ats: keka
+  id: exploringinfinities
+  careers_url: https://exploringinfinities.keka.com/careers/
+
+- name: UrbanPiper
+  ats: keka
+  id: urbanpiper
+  careers_url: https://urbanpiper.keka.com/careers/
+
+- name: SolarSquare
+  ats: keka
+  id: solarsquare
+  careers_url: https://solarsquare.keka.com/careers/
+
+- name: Exponent Energy
+  ats: keka
+  id: exponentenergy
+  careers_url: https://exponentenergy.keka.com/careers/
+
+- name: FloBiz
+  ats: keka
+  id: valorem
+  careers_url: https://valorem.keka.com/careers/
+
+- name: Onsitego
+  ats: keka
+  id: onsitego
+  careers_url: https://onsitego.keka.com/careers/
+
+- name: Loop Health (Keka)
+  ats: keka
+  id: loop
+  careers_url: https://loop.keka.com/careers/
+
+- name: Bijak
+  ats: keka
+  id: bijak
+  careers_url: https://bijak.keka.com/careers/

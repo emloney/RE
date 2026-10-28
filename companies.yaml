@@ -107,7 +107,6 @@
   workday_search: Bangalore
   careers_url: https://adobe.wd5.myworkdayjobs.com/external_experienced
 
-# --- Verified too, disabled by default (enable if you want them) --------------
 - name: Cisco
   ats: workday
   id: cisco
@@ -115,7 +114,6 @@
   workday_site: Cisco_Careers
   workday_search: Bangalore
   careers_url: https://cisco.wd5.myworkdayjobs.com/Cisco_Careers
-  enabled: false
 
 - name: NVIDIA
   ats: workday
@@ -124,4 +122,187 @@
   workday_site: NVIDIAExternalCareerSite
   workday_search: Bangalore
   careers_url: https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
-  enabled: false
+
+# --- Added 2026-10-28: verified boards with Bengaluru jobs --------------------
+- name: Target
+  ats: workday
+  id: target
+  workday_dc: 5
+  workday_site: targetcareers
+  workday_search: Bangalore
+  careers_url: https://target.wd5.myworkdayjobs.com/targetcareers
+
+- name: Salesforce
+  ats: workday
+  id: salesforce
+  workday_dc: 12
+  workday_site: External_Career_Site
+  workday_search: Bangalore
+  careers_url: https://salesforce.wd12.myworkdayjobs.com/External_Career_Site
+
+- name: PayPal
+  ats: workday
+  id: paypal
+  workday_dc: 1
+  workday_site: jobs
+  workday_search: Bangalore
+  careers_url: https://paypal.wd1.myworkdayjobs.com/jobs
+
+- name: Philips
+  ats: workday
+  id: philips
+  workday_dc: 3
+  workday_site: jobs-and-careers
+  workday_search: Bangalore
+  careers_url: https://philips.wd3.myworkdayjobs.com/jobs-and-careers
+
+- name: Wells Fargo
+  ats: workday
+  id: wf
+  workday_dc: 1
+  workday_site: WellsFargoJobs
+  workday_search: Bangalore
+  careers_url: https://wf.wd1.myworkdayjobs.com/WellsFargoJobs
+
+- name: Autodesk
+  ats: workday
+  id: autodesk
+  workday_dc: 1
+  workday_site: Ext
+  workday_search: Bangalore
+  careers_url: https://autodesk.wd1.myworkdayjobs.com/Ext
+
+- name: Mastercard
+  ats: workday
+  id: mastercard
+  workday_dc: 1
+  workday_site: CorporateCareers
+  workday_search: Bangalore
+  careers_url: https://mastercard.wd1.myworkdayjobs.com/CorporateCareers
+
+- name: Lowe's
+  ats: workday
+  id: lowes
+  workday_dc: 5
+  workday_site: LWS_External_CS
+  workday_search: Bangalore
+  careers_url: https://lowes.wd5.myworkdayjobs.com/LWS_External_CS
+
+- name: Red Hat
+  ats: workday
+  id: redhat
+  workday_dc: 5
+  workday_site: jobs
+  workday_search: Bangalore
+  careers_url: https://redhat.wd5.myworkdayjobs.com/jobs
+
+- name: Pure Storage
+  ats: greenhouse
+  id: purestorage
+  careers_url: https://job-boards.greenhouse.io/purestorage
+
+- name: Glean
+  ats: greenhouse
+  id: gleanwork
+  careers_url: https://job-boards.greenhouse.io/gleanwork
+
+- name: Zscaler
+  ats: greenhouse
+  id: zscaler
+  careers_url: https://job-boards.greenhouse.io/zscaler
+
+- name: Coinbase
+  ats: greenhouse
+  id: coinbase
+  careers_url: https://job-boards.greenhouse.io/coinbase
+
+- name: Airbnb
+  ats: greenhouse
+  id: airbnb
+  careers_url: https://job-boards.greenhouse.io/airbnb
+
+- name: Twilio
+  ats: greenhouse
+  id: twilio
+  careers_url: https://job-boards.greenhouse.io/twilio
+
+- name: Fivetran
+  ats: greenhouse
+  id: fivetran
+  careers_url: https://job-boards.greenhouse.io/fivetran
+
+- name: Toast
+  ats: greenhouse
+  id: toast
+  careers_url: https://job-boards.greenhouse.io/toast
+
+- name: Hevo Data
+  ats: lever
+  id: hevodata
+  careers_url: https://jobs.lever.co/hevodata
+
+- name: Mindtickle
+  ats: lever
+  id: mindtickle
+  careers_url: https://jobs.lever.co/mindtickle
+
+- name: Ema
+  ats: ashby
+  id: ema
+  careers_url: https://jobs.ashbyhq.com/ema
+
+- name: Composio
+  ats: ashby
+  id: composio
+  careers_url: https://jobs.ashbyhq.com/composio
+
+- name: Giga ML
+  ats: ashby
+  id: gigaml
+  careers_url: https://jobs.ashbyhq.com/gigaml
+
+- name: ServiceNow
+  ats: smartrecruiters
+  id: ServiceNow
+  careers_url: https://jobs.smartrecruiters.com/ServiceNow
+
+# --- Added 2026-10-28: from my HR contacts sheet (Bengaluru HRs) ---------------
+- name: Glance
+  ats: greenhouse
+  id: glance
+  careers_url: https://job-boards.greenhouse.io/glance
+
+- name: KredX
+  ats: smartrecruiters
+  id: kredx
+  careers_url: https://jobs.smartrecruiters.com/kredx
+
+- name: Refyne
+  ats: smartrecruiters
+  id: refyne
+  careers_url: https://jobs.smartrecruiters.com/refyne
+
+- name: Vegrow
+  ats: smartrecruiters
+  id: vegrow
+  careers_url: https://jobs.smartrecruiters.com/vegrow
+
+- name: CollegeDekho
+  ats: smartrecruiters
+  id: collegedekho
+  careers_url: https://jobs.smartrecruiters.com/collegedekho
+
+- name: Loop Health
+  ats: smartrecruiters
+  id: loophealth
+  careers_url: https://jobs.smartrecruiters.com/loophealth
+
+- name: InterviewBit
+  ats: smartrecruiters
+  id: interviewbit
+  careers_url: https://jobs.smartrecruiters.com/interviewbit
+
+- name: Fi
+  ats: lever
+  id: epifi
+  careers_url: https://jobs.lever.co/epifi

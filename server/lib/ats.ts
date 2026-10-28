@@ -3,7 +3,7 @@
 
 export class DetectError extends Error {}
 
-export type Ats = "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workday";
+export type Ats = "greenhouse" | "lever" | "ashby" | "smartrecruiters" | "workday" | "keka";
 
 export interface Detection {
   ats: Ats;
@@ -25,6 +25,8 @@ const PATTERNS: [Ats, RegExp][] = [
   ["ashby", new RegExp(`jobs\\.ashbyhq\\.com/${SLUG}`, "g")],
   ["smartrecruiters", new RegExp(`api\\.smartrecruiters\\.com/v1/companies/${SLUG}`, "g")],
   ["smartrecruiters", new RegExp(`(?:jobs|careers)\\.smartrecruiters\\.com/${SLUG}`, "g")],
+  // {subdomain}.keka.com/careers ("cdn.keka.com" only hosts Keka's own scripts)
+  ["keka", /(?<![a-z0-9-])(?!cdn\.)([a-z0-9][a-z0-9-]*)\.keka\.com\/careers/g],
 ];
 const WORKDAY =
   /([a-z0-9-]+)\.wd(\d+)\.myworkdayjobs\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?(?!wday\b)([A-Za-z0-9_-]+)/g;
@@ -88,7 +90,8 @@ export function robotsAllows(robotsTxt: string, path: string, agent = "internrad
   let longest = -1;
   for (const [allow, rule] of applicable.flatMap((g) => g.rules)) {
     const prefix = rule.replace(/\*.*$/, "").replace(/\$$/, "");
-    if (path.startsWith(prefix) && prefix.length > longest) {
+    // Longest rule wins; on a tie Allow wins (RFC 9309). Same as robots_allows() in http.py.
+    if (path.startsWith(prefix) && (prefix.length > longest || (prefix.length === longest && allow))) {
       longest = prefix.length;
       verdict = allow;
     }
@@ -164,6 +167,9 @@ export async function probe(d: Detection, deps: HttpDeps): Promise<number> {
       return (
         await getJson(`https://api.smartrecruiters.com/v1/companies/${id}/postings?limit=1`, deps)
       ).totalFound;
+    case "keka":
+      // Same endpoint as worker/internradar/adapters/keka.py (allowed by Keka's robots.txt).
+      return (await getJson(`https://${id}.keka.com/careers/api/jobs/default/active`, deps)).length;
     case "workday": {
       const base = `https://${d.id}.wd${d.workdayDc}.myworkdayjobs.com`;
       const data = await getJson(`${base}/wday/cxs/${d.id}/${d.workdaySite}/jobs`, deps, {

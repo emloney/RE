@@ -40,9 +40,10 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Note: the `runner` context isn't allowed at this level (only inside steps),
+    # so INTERNRADAR_WARNED_FILE is set on the steps that use it.
     env:
       INTERNRADAR_HOME: ${{ github.workspace }}
-      INTERNRADAR_WARNED_FILE: ${{ runner.temp }}/internradar-warned
       CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -81,6 +82,7 @@ jobs:
         working-directory: worker
         env:
           # Inputs go through env (not ${{ }} inside the script) so they can't inject shell code.
+          INTERNRADAR_WARNED_FILE: ${{ runner.temp }}/internradar-warned
           COMPANY: ${{ inputs.company }}
           DRY_RUN: ${{ inputs.dry_run }}
           ALERT_ON_BASELINE: ${{ inputs.alert_on_baseline }}
@@ -97,6 +99,7 @@ jobs:
       - name: Warn on Telegram if the workflow failed silently
         if: failure()
         env:
+          INTERNRADAR_WARNED_FILE: ${{ runner.temp }}/internradar-warned
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if [ -f "$INTERNRADAR_WARNED_FILE" ] || [ -z "$TELEGRAM_BOT_TOKEN" ]; then exit 0; fi

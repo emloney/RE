@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, datetime
 
 import pytest
@@ -120,6 +121,15 @@ def test_workflow_never_interpolates_inputs_into_shell():
     steps = WORKFLOW["jobs"]["check"]["steps"]
     for step in steps:
         assert "${{ inputs." not in step.get("run", ""), step.get("name")
+
+
+def test_job_level_env_only_uses_contexts_github_allows_there():
+    """GitHub rejects the whole file (0 jobs, no runs) if jobs.<id>.env uses e.g. runner."""
+    allowed = {"github", "needs", "strategy", "matrix", "vars", "secrets", "inputs"}
+    env = WORKFLOW["jobs"]["check"]["env"]
+    for name, value in env.items():
+        for context in re.findall(r"\$\{\{\s*([a-z_]+)\.", str(value)):
+            assert context in allowed, f"{name} uses '{context}', not allowed in job env"
 
 
 def test_every_secret_the_worker_reads_is_passed():

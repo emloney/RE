@@ -3,6 +3,11 @@
 
 export class DbError extends Error {}
 
+/** https://x.supabase.co, even if SUPABASE_URL was pasted with /rest/v1/ on the end. */
+export function projectUrl(url: string): string {
+  return url.trim().replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+}
+
 type Params = Record<string, string>;
 
 interface RequestOptions {
@@ -20,7 +25,7 @@ export class Db {
     key: string,
     private readonly fetchImpl: typeof fetch = fetch,
   ) {
-    this.base = `${url.replace(/\/+$/, "")}/rest/v1`;
+    this.base = `${projectUrl(url)}/rest/v1`;
     this.headers = { apikey: key, "Content-Type": "application/json" };
     // Legacy service_role keys are JWTs ("eyJ..."); new sb_secret_ keys go in apikey only.
     if (key.startsWith("eyJ")) this.headers.Authorization = `Bearer ${key}`;

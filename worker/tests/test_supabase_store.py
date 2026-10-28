@@ -7,6 +7,7 @@ import json
 from datetime import UTC, datetime
 
 import httpx
+import pytest
 
 from internradar.detect import NewJob, SyncPlan
 from internradar.models import ATS, Company, Job
@@ -31,6 +32,27 @@ def test_auth_headers_for_new_and_legacy_keys():
     make(handler, "eyJhbGciOi.legacy.jwt").tracked_companies()
     assert seen[0]["apikey"] == "sb_secret_abc" and "authorization" not in seen[0]
     assert seen[1]["authorization"] == "Bearer eyJhbGciOi.legacy.jwt"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://x.supabase.co",
+        "https://x.supabase.co/",
+        "https://x.supabase.co/rest/v1",
+        "https://x.supabase.co/rest/v1/",
+        "  https://x.supabase.co/rest/v1/  ",
+    ],
+)
+def test_project_url_accepts_pasted_rest_v1_suffix(url):
+    seen = []
+
+    def handler(request):
+        seen.append(str(request.url))
+        return httpx.Response(200, json=[])
+
+    SupabaseStore(url, "sb_secret_x", transport=httpx.MockTransport(handler)).tracked_companies()
+    assert seen[0].startswith("https://x.supabase.co/rest/v1/companies?")
 
 
 def test_select_paginates_past_1000_rows():

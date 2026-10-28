@@ -3,6 +3,7 @@ import { bestGuess, detect, DetectError, probe, robotsAllows } from "../lib/ats"
 import { splitMessage } from "../lib/bot";
 import { statusKeyboard } from "../lib/buttons";
 import { esc, formatIst, startOfIstDay } from "../lib/html";
+import { projectUrl } from "../lib/supabase";
 
 const http = (fetchImpl: typeof fetch) => ({ fetchImpl, userAgent: "InternRadar/1.0 (test)" });
 
@@ -88,6 +89,18 @@ describe("probe hits the same endpoints as the worker", () => {
   it("turns a missing board into a DetectError", async () => {
     const fake = (async () => new Response("", { status: 404 })) as typeof fetch;
     await expect(probe({ ats: "lever", id: "nope" }, http(fake))).rejects.toThrow("HTTP 404");
+  });
+});
+
+describe("Supabase URL", () => {
+  it.each([
+    "https://x.supabase.co",
+    "https://x.supabase.co/",
+    "https://x.supabase.co/rest/v1",
+    "https://x.supabase.co/rest/v1/",
+    "  https://x.supabase.co/rest/v1/  ",
+  ])("%j", (url) => {
+    expect(projectUrl(url)).toBe("https://x.supabase.co");
   });
 });
 

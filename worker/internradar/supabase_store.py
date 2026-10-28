@@ -7,6 +7,7 @@ must only ever run in the worker or serverless functions, never in a browser.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -36,6 +37,11 @@ class StoreError(Exception):
     pass
 
 
+def project_url(url: str) -> str:
+    """https://x.supabase.co, even if SUPABASE_URL was pasted with /rest/v1/ on the end."""
+    return re.sub(r"/rest/v1$", "", url.strip().rstrip("/"))
+
+
 class SupabaseStore:
     def __init__(self, url: str, key: str, *, transport: httpx.BaseTransport | None = None) -> None:
         headers = {"apikey": key, "Content-Type": "application/json"}
@@ -43,7 +49,7 @@ class SupabaseStore:
         if key.startswith("eyJ"):
             headers["Authorization"] = f"Bearer {key}"
         self._client = httpx.Client(
-            base_url=f"{url.rstrip('/')}/rest/v1",
+            base_url=f"{project_url(url)}/rest/v1",
             headers=headers,
             timeout=30.0,
             transport=transport,

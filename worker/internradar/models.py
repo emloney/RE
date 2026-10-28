@@ -19,6 +19,7 @@ class ATS(StrEnum):
     ashby = "ashby"
     smartrecruiters = "smartrecruiters"
     workday = "workday"
+    keka = "keka"
     html = "html"
 
 

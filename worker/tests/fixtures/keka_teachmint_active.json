@@ -1,0 +1,71 @@
+[
+  {
+    "id": 145903,
+    "title": "Intern — International Business",
+    "description": "<div><strong>Role: Intern — International Business</strong></div><div><strong>Location: Bangalore (in-office)</strong></div><div><strong>Duration: 6 months, full-time</strong></div><div><strong>Stipend: As per company standards</strong></div><div><br></div><div><strong style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">About Us:</strong></div><div><span style=\"color: rgb(0, 0, 0); ",
+    "departmentIdentifier": "b94514d4-a787-4f7b-b3eb-a402f3693450",
+    "departmentName": "GTM International",
+    "excerpt": "Role: Intern — International BusinessLocation: Bangalore (in-office)Duration: 6 months, full-timeStipend: As per company standardsAbout Us:At Teachmint, we believe that education moves the world forwa",
+    "jobLocations": [
+      {
+        "id": 16201,
+        "name": "Bangalore",
+        "city": "Bangalore",
+        "state": "KA",
+        "countryCode": "IN",
+        "countryName": "India"
+      }
+    ],
+    "jobType": 2,
+    "experience": "0-1 year",
+    "salaryRange": {
+      "currency": "INR",
+      "salaryPeriod": 0,
+      "cultureInfo": "en-IN"
+    },
+    "salaryRangeFormat": "",
+    "publishedOn": "2026-10-28T08:52:42.227Z",
+    "publishedSinceDays": 0,
+    "skillNames": []
+  },
+  {
+    "id": 145733,
+    "title": "Assistant Manager - Business & Partnerships (Tirupati)",
+    "description": "<div><strong style=\"background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);\">Job Title: Assistant Manager - Business &amp; Partnerships</strong></div><div><br></div><div><strong style=\"background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);\">About Us:</strong></div><div><span style=\"background-color: rgb(255, 255, 255); color: rgb(0, 0, 0);\">At Teachmint, we believe that education moves the ",
+    "departmentIdentifier": "460ce6b6-58d4-4b39-98a8-7fdf6d31df54",
+    "departmentName": "Sales - India and SAARC",
+    "excerpt": "Job Title: Assistant Manager - Business &amp; PartnershipsAbout Us:At Teachmint, we believe that education moves the world forward and deserves the best technology. As a pioneer in AI-powered educatio",
+    "jobLocations": [],
+    "jobType": 2,
+    "experience": "2-5",
+    "salaryRange": {
+      "currency": "INR",
+      "salaryPeriod": 0,
+      "cultureInfo": "en-IN"
+    },
+    "salaryRangeFormat": "",
+    "publishedOn": "2026-10-27T09:07:33.497Z",
+    "publishedSinceDays": 1,
+    "skillNames": []
+  },
+  {
+    "id": 145730,
+    "title": "Manager - Business & Partnerships (Rajkot)",
+    "description": "<div><strong>Job Title: Manager- Business &amp; Partnerships (Rajkot)</strong></div><div><br></div><div><strong>About Us:</strong></div><div>At Teachmint, we believe that education moves the world forward and deserves the best technology. As a pioneer in AI-powered educational technology, we deliver a unified ecosystem that brings together AI, a connected classroom app, and smart hardware in one p",
+    "departmentIdentifier": "460ce6b6-58d4-4b39-98a8-7fdf6d31df54",
+    "departmentName": "Sales - India and SAARC",
+    "excerpt": "Job Title: Manager- Business &amp; Partnerships (Rajkot)About Us:At Teachmint, we believe that education moves the world forward and deserves the best technology. As a pioneer in AI-powered educationa",
+    "jobLocations": [],
+    "jobType": 2,
+    "experience": "3-6",
+    "salaryRange": {
+      "currency": "INR",
+      "salaryPeriod": 0,
+      "cultureInfo": "en-IN"
+    },
+    "salaryRangeFormat": "",
+    "publishedOn": "2026-10-27T09:03:46.41Z",
+    "publishedSinceDays": 1,
+    "skillNames": []
+  }
+]

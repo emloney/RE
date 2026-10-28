@@ -17,6 +17,8 @@ describe("ATS URL patterns (same cases as the Python tests)", () => {
     ["https://jobs.ashbyhq.com/sarvam", "ashby", "sarvam"],
     ["https://jobs.smartrecruiters.com/Freshworks/744000157728799", "smartrecruiters", "Freshworks"],
     ["https://careers.smartrecruiters.com/Swiggy", "smartrecruiters", "Swiggy"],
+    ["https://teachmint.keka.com/careers/", "keka", "teachmint"],
+    ['<script src="https://cdn.keka.com/careers/v/2026/x.js"></script> https://gokwik.keka.com/careers', "keka", "gokwik"],
   ])("%s", (url, ats, id) => {
     expect(bestGuess(url)).toMatchObject({ ats, id });
   });
@@ -32,6 +34,7 @@ describe("ATS URL patterns (same cases as the Python tests)", () => {
 
   it("returns null for pages with no ATS", () => {
     expect(bestGuess("https://www.example.com/careers")).toBeNull();
+    expect(bestGuess("https://cdn.keka.com/careers/v/2026/")).toBeNull();
   });
 });
 
@@ -43,6 +46,10 @@ describe("robots.txt", () => {
     ["User-agent: *\nDisallow: /\n\nUser-agent: InternRadar\nAllow: /", "/careers", true],
     ["User-agent: googlebot\nDisallow: /", "/careers", true],
     ["User-agent: *\nDisallow:", "/careers", true],
+    // Keka's real robots.txt: everything blocked except /careers
+    ["User-agent: *\nDisallow: /\nAllow: /careers\nAllow: /careers/", "/careers/api/embedjobs/x", true],
+    ["User-agent: *\nDisallow: /\nAllow: /careers\nAllow: /careers/", "/admin", false],
+    ["User-agent: *\nDisallow: /x\nAllow: /x", "/x", true],
   ])("%j on %s -> %s", (txt, path, allowed) => {
     expect(robotsAllows(txt, path)).toBe(allowed);
   });
@@ -76,6 +83,7 @@ describe("probe hits the same endpoints as the worker", () => {
     [{ ats: "ashby", id: "sarvam" }, "https://api.ashbyhq.com/posting-api/job-board/sarvam", { jobs: [1] }, 1],
     [{ ats: "smartrecruiters", id: "Swiggy" }, "https://api.smartrecruiters.com/v1/companies/Swiggy/postings?limit=1", { totalFound: 201 }, 201],
     [{ ats: "workday", id: "intel", workdayDc: 1, workdaySite: "External" }, "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/jobs", { total: 791 }, 791],
+    [{ ats: "keka", id: "teachmint" }, "https://teachmint.keka.com/careers/api/jobs/default/active", [{ id: 1 }, { id: 2 }], 2],
   ] as const)("%o", async (d, expectedUrl, body, count) => {
     const urls: string[] = [];
     const fake = (async (input: RequestInfo | URL) => {

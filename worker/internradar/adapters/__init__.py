@@ -6,6 +6,7 @@ from internradar.adapters.ashby import AshbyAdapter
 from internradar.adapters.base import Adapter
 from internradar.adapters.greenhouse import GreenhouseAdapter
 from internradar.adapters.html import HtmlAdapter
+from internradar.adapters.keka import KekaAdapter
 from internradar.adapters.lever import LeverAdapter
 from internradar.adapters.smartrecruiters import SmartRecruitersAdapter
 from internradar.adapters.workday import WorkdayAdapter
@@ -20,6 +21,7 @@ ADAPTERS: dict[ATS, type[Adapter]] = {
         AshbyAdapter,
         SmartRecruitersAdapter,
         WorkdayAdapter,
+        KekaAdapter,
         HtmlAdapter,
     )
 }

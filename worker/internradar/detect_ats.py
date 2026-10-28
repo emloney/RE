@@ -38,6 +38,8 @@ PATTERNS: list[tuple[ATS, re.Pattern[str]]] = [
     (ATS.ashby, re.compile(r"jobs\.ashbyhq\.com/" + _SLUG)),
     (ATS.smartrecruiters, re.compile(r"api\.smartrecruiters\.com/v1/companies/" + _SLUG)),
     (ATS.smartrecruiters, re.compile(r"(?:jobs|careers)\.smartrecruiters\.com/" + _SLUG)),
+    # {subdomain}.keka.com/careers ("cdn.keka.com" only hosts Keka's own scripts)
+    (ATS.keka, re.compile(r"(?<![a-z0-9-])(?!cdn\.)([a-z0-9][a-z0-9-]*)\.keka\.com/careers")),
 ]
 WORKDAY = re.compile(
     r"([a-z0-9-]+)\.wd(\d+)\.myworkdayjobs\.com/(?:[a-z]{2}-[A-Z]{2}/)?(?!wday\b)([A-Za-z0-9_-]+)"
